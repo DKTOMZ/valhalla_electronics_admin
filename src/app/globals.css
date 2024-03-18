@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-ms-reveal {
+    display: none;
+}
+
+.zoomable {
+    transition: transform 0.5s;
+}
+  
+.scale-125 {
+    transform: scale(1.25);
+}
+
+table tr td {
+    @apply px-2 py-2 border border-slate-100 dark:border-gray-600;
+}
+
+
+  
+  input[type="datetime-local"]::-webkit-inner-spin-button {
+    background-color: white;
+  }
+  
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    background-color: white;
+  }
+  
