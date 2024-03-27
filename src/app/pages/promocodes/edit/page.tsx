@@ -73,7 +73,6 @@ const EditPromocode: React.FC = () => {
         const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/promocodes/edit/`, 
             {
                 _id: promocodeId,
-                code: promocode,
                 validUntil: validUntil,
                 discountPercent: discountPercent
             }
@@ -120,7 +119,7 @@ const EditPromocode: React.FC = () => {
                 <h2 className="text-black dark:text-white text-lg">Edit promocode below</h2>
                 <div>
                     <label htmlFor='promocode' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Code *</label>
-                    <input onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="promocode" placeholder="promocode" value={promocode}
+                    <input onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="promocode" placeholder="promocode" readOnly value={promocode}
                     onChange={(e)=>setPromocode(e.target.value)}
                     className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>

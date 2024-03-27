@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         }})
     }
 
-    const { _id, code, validUntil, discountPercent} = await req.json();
+    const { _id, validUntil, discountPercent} = await req.json();
 
     await dbConnService.mongooseConnect().catch(err => new Response(JSON.stringify({error:err.message}),{status:503,headers:{
         'Content-Type':'application/json'
@@ -51,12 +51,6 @@ export async function POST(req: NextRequest) {
 
     if (!_id) {
         return new Response(JSON.stringify({error:'_id key is missing'}),{status:400,headers:{
-            'Content-Type':'application/json'
-        }})
-    }
-
-    if (!code) {
-        return new Response(JSON.stringify({error:'code key is missing'}),{status:400,headers:{
             'Content-Type':'application/json'
         }})
     }
@@ -75,13 +69,13 @@ export async function POST(req: NextRequest) {
 
     const promocode = await Promocode.findOne<PromocodeType>({_id:_id})
 
-    if (!promocode) { return new Response(JSON.stringify({error:`Promocode ${code} no longer exists`}),{status:409,headers:{
+    if (!promocode) { return new Response(JSON.stringify({error:`Promocode no longer exists`}),{status:409,headers:{
         'Content-Type':'application/json'
     }}) }
 
     else {
         try {
-            await Promocode.updateOne({_id:_id},{code:code,validUntil:validUntil, discountPercent: discountPercent, updated: new Date()});
+            await Promocode.updateOne({_id:_id},{validUntil:validUntil, discountPercent: discountPercent, updated: new Date()});
 
             return new Response(JSON.stringify({success:true}),{status:200,headers:{
                 'Content-Type':'application/json'
