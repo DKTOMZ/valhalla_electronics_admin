@@ -33,7 +33,7 @@ const EditPromocode: React.FC = () => {
     const [saveSuccess,setSaveSuccess] = useState(false);
     const [loadingSave,setLoadingSave] = useState(false);
     const [loading,setLoading] = useState(true);
-    const [promocodeId,setPromocodeId] = useState(useSearchParams().get('id'));
+    const [promocodeId] = useState(useSearchParams().get('id'));
     const [promocodeExists,setPromocodeExists] = useState(true);
 
 
@@ -45,7 +45,7 @@ const EditPromocode: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/promocodes'); 
         }
-    },[saveSuccess])
+    },[loadingSave, router, saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {

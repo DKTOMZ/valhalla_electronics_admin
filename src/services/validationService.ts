@@ -2,6 +2,7 @@ import { emailRegex } from "@/utils/regex";
 import { injectable } from "inversify";
 import React from "react";
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Service to handle validations
  */

@@ -4,17 +4,20 @@ import './globals.css'
 import { ABeeZee } from 'next/font/google'
 import Script from 'next/script'
 import { Session } from 'next-auth'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 const inter = ABeeZee({ subsets: ['latin'], weight: '400' })
 
+// eslint-disable-next-line no-unused-vars
 enum AppTheme {
+    // eslint-disable-next-line no-unused-vars
   DARK = 'dark',
+  // eslint-disable-next-line no-unused-vars
   LIGHT = 'light',
 }
 
 export default function RootLayout({ children, session }: {children: React.ReactNode, session: Session}) {
-  const [appTheme, setAppTheme] = useState<AppTheme | null>();
+  const [, setAppTheme] = useState<AppTheme | null>();
   
   useEffect(()=>{
       if (typeof window !== 'undefined') {
@@ -30,7 +33,7 @@ export default function RootLayout({ children, session }: {children: React.React
 
   return (
     <html lang="en">
-      <Script src='https://kit.fontawesome.com/086823c0ac.js' crossOrigin='anonymous'></Script>
+      <Script src={'https://kit.fontawesome.com/086823c0ac.js'} crossOrigin='anonymous'></Script>
       <body className={inter.className + ' bg-gray-100 dark:bg-zinc-900'}>
         <div className='bg-gray-100 dark:bg-zinc-900 h-full'>
           <SessionProvider session={session}>

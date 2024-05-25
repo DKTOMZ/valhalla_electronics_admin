@@ -1,3 +1,5 @@
+// noinspection JSUnusedLocalSymbols
+
 import { injectable } from "inversify";
 
 /**
@@ -10,16 +12,16 @@ export class StorageService {
 
     private sessionStorage: Storage = sessionStorage;
 
-    addLocalObject = (key: string, value: any) => { this.localStorage.setItem(key, value); }
+    //addLocalObject = (key: string, value: any) => { this.localStorage.setItem(key, value); }
 
-    addSessionObject = (key: string, value: any) => { this.sessionStorage.setItem(key,value); }
+    //addSessionObject = (key: string, value: any) => { this.sessionStorage.setItem(key,value); }
 
-    getLocalObject = (key: string) => { this.localStorage.getItem(key); }
+    //getLocalObject = (key: string) => { this.localStorage.getItem(key); }
 
-    getSessionObject = (key: string) => { this.sessionStorage.getItem(key); }
+    //getSessionObject = (key: string) => { this.sessionStorage.getItem(key); }
 
-    removeLocalObject = (key: string) => { this.localStorage.removeItem(key); }
+    //removeLocalObject = (key: string) => { this.localStorage.removeItem(key); }
 
-    removeSessionObject = (key: string) => { this.localStorage.removeItem(key); }
+    //removeSessionObject = (key: string) => { this.localStorage.removeItem(key); }
 
 }

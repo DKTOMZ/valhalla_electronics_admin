@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }});
 }
 
-export async function GET(req: NextRequest,{params}:{params:{id:string}}) {
+export async function GET(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
         throw new Error('Missing NEXT_PUBLIC_COOKIE_NAME property in env file');
     }
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest,{params}:{params:{id:string}}) {
 
     let objectId: mongoose.Types.ObjectId ;
 
-    const id = params['id'].replace('id=','');
+    const id = req.nextUrl.searchParams.get('id');
 
     if (!id) {
         return new Response(JSON.stringify({error:'id is not provided'}),{ status: 409, headers: {

@@ -5,6 +5,9 @@ import {BackendServices} from "@/app/api/inversify.config";
 import { AdminServer } from "@/models/Admin";
 import { JWTPurpose } from "@/models/JWTPurpose";
 import { MailService } from "@/services/mailService";
+import { GenericUserTemplate } from "@/models/genericUserTemplate";
+import { MailTemplates } from "@/models/mailTemplates";
+import { NextRequest } from "next/server";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
@@ -17,9 +20,9 @@ export async function POST() {
     }});
 }
 
-export async function GET({params}:{params:{email:string}}) {
+export async function GET(req: NextRequest) {
 
-    const email = params['email'].replace('email=','');
+    const email = req.nextUrl.searchParams.get('email');
 
     if (!email) {
         return new Response(JSON.stringify({error:'Email is missing'}),{status:400,headers:{
@@ -38,20 +41,15 @@ export async function GET({params}:{params:{email:string}}) {
         if (!user.password) { throw new Error('Reset with the auth provider linked to this email'); }
         const response = jwtService.generateJWT(user._id.toString(),JWTPurpose.RESET_PASSWORD);
         if (response.error) { throw new Error(response.error); }
-        await mailService.sendMail({
-            to: user.email, subject:'Valhalla Gadgets - Password Reset for your account',text:'',
-            html:`<div>
-                <h1>Reset your account password</h1>
-                <p>Hi, ${user.name}. Please click on the link below to reset your account password<p>
-                <a href=${response.success}>
-                    <p>Password reset link</p>
-                </a>
-                <p>If you did not make a request to reset your password, you can ignore this email.
-                    Please do not reply to this email as it is unattended.
-                </p>
-                <p>Warm regards.</p>
-                <p>Valhalla Gadgets</p>
-            </div>`});
+        await mailService.sendMail<GenericUserTemplate>({
+            to: user.email, 
+            subject: 'Valhalla Gadgets - Password Reset for your account',
+            template: MailTemplates.PASSWORD_RESET,
+            context: {
+                userName: user.name,
+                verifyLink: response.success
+            }
+        });
 
         return new Response(JSON.stringify({success:true}),{status:201,headers:{
                 'Content-Type':'application/json'

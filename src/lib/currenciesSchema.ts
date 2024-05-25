@@ -8,6 +8,10 @@ const currencySchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    shortName: {
+        type: String,
+        required: true,
+    },
     symbol: {
         type: String,
         required: true,

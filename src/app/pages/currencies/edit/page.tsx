@@ -19,11 +19,12 @@ const EditCurrency: React.FC = () => {
     FrontendServices.get<ValidationService>('ValidationService');
 //State variables
     const [currencyName,setCurrencyName] = useState('');
+    const [currencyShortName,setCurrencyShortName] = useState('');
     const [currencySymbol,setCurrencySymbol] = useState('');
     const [saveSuccess,setSaveSuccess] = useState(false);
     const [loadingSave,setLoadingSave] = useState(false);
     const [loading,setLoading] = useState(true);
-    const [currencyId, setCurrencyId] = useState(useSearchParams().get('id'));
+    const [currencyId] = useState(useSearchParams().get('id'));
     const [currencyExists,setCurrencyExists] = useState(true);
 
     //Element refs
@@ -34,7 +35,7 @@ const EditCurrency: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/currencies'); 
         }
-    },[saveSuccess])
+    },[loadingSave, router, saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {
@@ -43,6 +44,7 @@ const EditCurrency: React.FC = () => {
         loading && fetchData().then(response => {
             if (response.status >= 200 && response.status<=299 && response.data) {
                 setCurrencyName(response.data.name);
+                setCurrencyShortName(response.data.shortName);
                 setCurrencySymbol(response.data.symbol);
             }
 
@@ -61,6 +63,7 @@ const EditCurrency: React.FC = () => {
             {
                 _id: currencyId,
                 name: currencyName,
+                shortName: currencyShortName,
                 symbol: currencySymbol
             }
         );
@@ -96,6 +99,14 @@ const EditCurrency: React.FC = () => {
                     <label htmlFor='Currency-Name' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Name *</label>
                     <input onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Currency-Name" placeholder="Currency Name" value={currencyName}
                     onChange={(e)=>setCurrencyName(e.target.value)}
+                    className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
+                </div>
+
+                
+                <div>
+                    <label htmlFor='Currency-ShortName' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Short Name *</label>
+                    <input onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Currency-ShortName" placeholder="Currency-ShortName" value={currencyShortName}
+                    onChange={(e)=>setCurrencyShortName(e.target.value)}
                     className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>
 

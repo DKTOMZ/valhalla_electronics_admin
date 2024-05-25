@@ -24,7 +24,7 @@ const EditProduct: React.FC = () => {
     const [productDesc,setProductDesc] = useState('');
     const [productContents,setProductContents] = useState('');
     const [categories,setCategories] = useState<Category[]>([]);
-    const [currentCategory,setCurrentCategory] = useState<Category>();
+    const [,setCurrentCategory] = useState<Category>();
     const [categoryName,setCategoryName] = useState('Select Category');
     const [currentProperties,setCurrentProperties] = useState<any>({});
     const [productPrice,setProductPrice] = useState(0);
@@ -38,7 +38,7 @@ const EditProduct: React.FC = () => {
     const [allProps,setAllProps] = useState<CategoryProperty[]>([]);
     const [loadingSave,setLoadingSave] = useState(false);
     const [Images,setImages] = useState<{Key: string, link: string}[]>([]);
-    const [loadingDeleteImage,setLoadingDeleteImage] = useState(false);
+    const [,setLoadingDeleteImage] = useState(false);
     const productId = useSearchParams().get('id');
     const [productExists,setProductExists] = useState(true);
 
@@ -77,6 +77,8 @@ const EditProduct: React.FC = () => {
                         : null;
                     setCurrentProperties(product.properties);
                     product.images ? setImages([...product.images]) : setImages([]);
+                    setProductStock(product.stock);
+                    setProductDiscountPercent(product.discount);
                 }
 
                 if(!responseCategories && !responseProduct) {
@@ -217,7 +219,7 @@ const EditProduct: React.FC = () => {
     const handleInputChange = (event: FormEvent<HTMLInputElement>) => {
         const value =  parseInt(event.currentTarget.value, 10);
 
-        if(value >= 1 && value <= 100) {
+        if(value >= 0 && value <= 100) {
             event.currentTarget.valueAsNumber = value;
         } else if(isNaN(value)){
             event.currentTarget.valueAsNumber = 1;
@@ -265,7 +267,7 @@ const EditProduct: React.FC = () => {
                 <div>
                     <label htmlFor='Current-Category' className='block sm:text-base font-bold text-sm dark:text-white'>Category *</label>
                     <div ref={categoryError} className='text-red-500'></div>
-                    <select onBlur={(e)=>categoryError.current.innerHTML = ''} value={categoryName} onChange={(e)=>
+                    <select onBlur={()=>categoryError.current.innerHTML = ''} value={categoryName} onChange={(e)=>
                         {
                             setCurrentProperties({});
                             let curr = categories.filter(category=>category.name === e.target.value)[0];
@@ -311,6 +313,7 @@ const EditProduct: React.FC = () => {
                         <div className="flex gap-2 flex-wrap mb-4">
                             { Images.map((image,index)=>{
                                 return <div key={index} className="relative w-40 h-40 mr-3">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img className="object-cover w-full h-full" src={`${image.link}`} alt="product-image" />
                                     <button type="button" title="Delete" onClick={(e)=>handleImageDeletion(e,image)} className="absolute -top-5 -right-5 bg-white dark:bg-zinc-800"><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
                                 </div>
@@ -326,6 +329,7 @@ const EditProduct: React.FC = () => {
                         <div className="flex gap-2 flex-wrap mb-4">
                             { tempImages.map((image,index)=>{
                                 return <div key={`${index}-${image.name}`} className="relative w-40 h-40 mr-5">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img className="object-cover w-full h-full" src={`${URL.createObjectURL(image)}`} alt="product-image" />
                                     <button type="button" title="Delete" onClick={(e)=>handleTempImageDeletion(e,index)} className="absolute cursor-pointer -top-5 -right-5 bg-white dark:bg-zinc-800"><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
                                 </div>
@@ -394,7 +398,7 @@ const EditProduct: React.FC = () => {
                 
                 <div>
                     <label htmlFor='Product-Stock' className='sm:text-base font-bold text-sm dark:text-white'>Stock *</label>
-                    <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" required name="Stock" placeholder="Stock" value={productStock}
+                    <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" required min={0} name="Stock" placeholder="Stock" value={productStock}
                     onChange={(e)=>setProductStock(e.target.value ? e.target.valueAsNumber : 0)}
                     className="px-2  outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>

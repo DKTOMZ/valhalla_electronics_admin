@@ -23,14 +23,14 @@ const EditCategory: React.FC = () => {
     const [categories,setCategories] = useState<Category[]>([]);
     const [parentCategory,setParentCategory] = useState('No Parent Category');
     const [saveSuccess,setSaveSuccess] = useState(false);
-    const [loadingDelete,setLoadingDelete] = useState(false);
+    const [,setLoadingDelete] = useState(false);
     const [loadingSave,setLoadingSave] = useState(false);
     const [loading,setLoading] = useState(true);
     const [Images,setImages] = useState<{Key: string, link: string}[]>([]);
     const [uploading,setUploading] = useState(false);
     const [dragActive,setDragActive] = useState(false);
     const [tempImages,setTempImages] = useState<File[]>([]);
-    const [categoryId,setCategoryId] = useState(useSearchParams().get('id'));
+    const [categoryId] = useState(useSearchParams().get('id'));
     const [categoryExists,setCategoryExists] = useState(true);
 
     //Element refs
@@ -257,6 +257,7 @@ const EditCategory: React.FC = () => {
                         <div className="flex gap-2 flex-wrap mb-4">
                             { Images.map((image,index)=>{
                                 return <div key={index} className="relative w-40 h-40">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img className="object-cover w-full h-full" src={`${image.link}`} alt="category-image" />
                                     <button type="button" title="Delete" onClick={(e)=>handleImageDeletion(e,image)} className="absolute -top-5 -right-5 bg-white dark:bg-zinc-800 "><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
                                 </div>
@@ -272,6 +273,7 @@ const EditCategory: React.FC = () => {
                         <div className="flex gap-2 flex-wrap mb-4">
                             { tempImages.map((image,index)=>{
                                 return <div key={`${index}-${image.name}`} className="relative w-40 h-40">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img className="object-cover w-full h-full" src={`${URL.createObjectURL(image)}`} alt="category-image" />
                                     <button type="button" title="Delete" onClick={(e)=>handleTempImageDeletion(e,index)} className="absolute -top-5 -right-5 bg-white dark:bg-zinc-800 "><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
                                 </div>

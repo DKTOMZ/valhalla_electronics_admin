@@ -40,7 +40,7 @@ const NewCategory: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/categories'); 
         }
-    },[saveSuccess])
+    },[loadingSave, router, saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {
@@ -181,6 +181,7 @@ const NewCategory: React.FC = () => {
                     <div className="flex gap-2 flex-wrap mb-4">
                         { tempImages.map((image,index)=>{
                             return <div key={`${index}`} className="relative w-40 h-40">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img className="object-cover w-full h-full" src={`${URL.createObjectURL(image)}`} alt="category-image" />
                                 <button title="Delete" onClick={()=>setTempImages([...tempImages.slice(0,index),...tempImages.slice(index+1)])} className="absolute -top-5 -right-5 bg-white dark:bg-zinc-800 "><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
                             </div>

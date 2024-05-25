@@ -3,6 +3,7 @@ import TokenBlacklist from "@/lib/tokenBlacklistSchema";
 import { DbConnService } from "@/services/dbConnService";
 import { JWTService } from "@/services/jwtService";
 import { TokenBlacklist as tokenBlacklistType } from "@/models/tokenBlacklist";
+import { NextRequest } from "next/server";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
@@ -14,9 +15,9 @@ export async function POST() {
     }});
 }
 
-export async function GET({params}:{params: {token: string}}) {
+export async function GET(req: NextRequest) {
 
-    const token = params['token'].replace('token=','');
+    const token = req.nextUrl.searchParams.get('token');
 
     if (!token) {
         return new Response(JSON.stringify({error:'Request data/body is missing'}),{status:400,headers:{

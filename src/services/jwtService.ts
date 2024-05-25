@@ -42,7 +42,7 @@ export class JWTService {
 
     verify = (token: string) => {
 
-        return new Promise<string>((resolve, reject)=> {
+        return new Promise<string>((resolve)=> {
             jwt.verify(token, this.appSecret, (error, decoded) => {
                 if (error) {
                     throw new Error(JSON.stringify(error));

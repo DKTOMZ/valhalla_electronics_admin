@@ -60,9 +60,17 @@ const Nav: React.FC<NavProps> = ({showNav, setShowNav}) => {
                 <i className="fa-solid fa-coins mr-2"></i>
                 Currencies
             </Link>
+            <Link href={'/pages/currencyRates'} className={path.includes('/currencyRates') ? activeLinkClass : inactiveLinkClass}>
+                <i className="fa-solid fa-arrow-right-arrow-left mr-2"></i>
+                CurrencyRates
+            </Link>
             <Link href={'/pages/promocodes'} className={path.includes('/promocodes') ? activeLinkClass : inactiveLinkClass}>
                 <i className="fa-solid fa-receipt mr-2"></i>
                 Promocodes
+            </Link>
+            <Link href={'/pages/shippingRates'} className={path.includes('/shippingRates') ? activeLinkClass : inactiveLinkClass}>
+                <i className="fa-solid fa-truck mr-2"></i>
+                ShippingRates
             </Link>
             <Link href={'/pages/settings'} className={path.includes('/settings') ? activeLinkClass : inactiveLinkClass}>
                 <i className="fa-solid fa-gear mr-2"></i>

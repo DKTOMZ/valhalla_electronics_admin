@@ -48,7 +48,7 @@ const Products: React.FC = () => {
 
     useEffect(()=>{
         searchText === '' ? setTempProducts(products) : null;
-    },[searchText])
+    },[products, searchText])
     
     return (
         <Layout>
@@ -93,7 +93,7 @@ const Products: React.FC = () => {
             <div>
                 <div>
                     <div className={`flex max-sm:w-full w-96 flex-row mb-2 items-center h-11 shadow-md shadow-zinc-600 dark:shadow-none focus-within:dark:shadow-sm focus-within:dark:shadow-orange-400  focus-within:shadow-orange-700 rounded-md`}>
-                        <input type="search" placeholder="Search..." value={searchText} onChange={(e)=>setSearchText(e.target.value)} className={`search-bar h-full w-5/6 max-sm:w-3/4 rounded-s-md p-2 dark:text-white dark:bg-slate-700 text-black outline-none`} />
+                        <input type="search" placeholder="Search..." value={searchText} onChange={(e)=>setSearchText(e.target.value)} className={`search-bar h-full w-5/6 max-sm:w-3/4 rounded-s-md p-2 dark:text-white dark:bg-zinc-700 text-black outline-none`} />
                         <button className=" h-full w-16 px-3 bg-orange-500 md:hover:bg-orange-400 max-md:active:bg-orange-400 text-white rounded-e-md" title="search" onClick={()=>searchProducts()}>
                             <i className="fa-solid fa-magnifying-glass fa-xl"></i>
                         </button>

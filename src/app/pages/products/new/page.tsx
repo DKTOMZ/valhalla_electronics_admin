@@ -23,7 +23,7 @@ const NewProduct: React.FC = () => {
     const [productDesc,setProductDesc] = useState('');
     const [productContents,setProductContents] = useState('');
     const [categories,setCategories] = useState<Category[]>([]);
-    const [currentCategory,setCurrentCategory] = useState<Category>();
+    const [,setCurrentCategory] = useState<Category>();
     const [categoryName,setCategoryName] = useState('Select Category');
     const [currentProperties,setCurrentProperties] = useState<any>({});
     const [productPrice,setProductPrice] = useState(0);
@@ -51,7 +51,7 @@ const NewProduct: React.FC = () => {
             setLoading(false);
             router.push('/pages/products'); 
         }
-    },[saveSuccess]);
+    },[loading, router, saveSuccess]);
 
     useEffect(()=>{
         const fetchData = async() => {
@@ -163,7 +163,7 @@ const NewProduct: React.FC = () => {
     const handleInputChange = (event: FormEvent<HTMLInputElement>) => {
         const value =  parseInt(event.currentTarget.value, 10);
 
-        if(value >= 1 && value <= 100) {
+        if(value >= 0 && value <= 100) {
             event.currentTarget.valueAsNumber = value;
         } else if(isNaN(value)){
             event.currentTarget.valueAsNumber = 1;
@@ -243,6 +243,7 @@ const NewProduct: React.FC = () => {
                     <div className="flex gap-2 flex-wrap mb-4">
                         { tempImages.map((image,index)=>{
                             return <div key={index} className="relative w-40 h-40 mr-3">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img className="object-cover w-full h-full" src={`${URL.createObjectURL(image)}`} alt="product-image" />
                                 <button title="Delete" onClick={()=>setTempImages([...tempImages.slice(0,index),...tempImages.slice(index+1)])} className="absolute -top-5 -right-5 bg-white dark:bg-zinc-800"><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
                             </div>
@@ -301,7 +302,7 @@ const NewProduct: React.FC = () => {
 
                 <div>
                     <label htmlFor='Product-Discount' className='sm:text-base font-bold text-sm dark:text-white'>Discount (%) *</label>
-                    <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" required name="Discount" min={1} max={100} placeholder="Discount" value={productDiscountPercent}
+                    <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" required name="Discount" min={productDiscountPercent} max={100} placeholder="Discount" value={productDiscountPercent}
                     onInput={(e)=>handleInputChange(e)}
                     onChange={(e)=>setProductDiscountPercent(e.target.value ? e.target.valueAsNumber : 0)}
                     className="px-2  outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
@@ -309,7 +310,7 @@ const NewProduct: React.FC = () => {
  
                 <div>
                     <label htmlFor='Product-Stock' className='sm:text-base font-bold text-sm dark:text-white'>Stock *</label>
-                    <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" required name="Stock" placeholder="Stock" value={productStock}
+                    <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" min={0} required name="Stock" placeholder="Stock" value={productStock}
                     onChange={(e)=>setProductStock(e.target.value ? e.target.valueAsNumber : 0)}
                     className="px-2  outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>

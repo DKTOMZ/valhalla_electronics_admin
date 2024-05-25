@@ -14,7 +14,7 @@ const AdminHome: React.FC = () => {
     const { data: session, status } = useSession();
 
     if(status === 'loading') {
-        <Loading />
+        return <Loading />;
     }
 
     if (!session) {

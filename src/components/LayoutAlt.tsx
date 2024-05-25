@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Loading from "./loading";
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
 import {AppTheme} from "@/app/appTheme";
 
 interface LayoutProps {
@@ -70,7 +69,7 @@ const LayoutAlt: React.FC<LayoutProps>  = ({ children }) => {
         };
       }, []);
 
-      const { data: session , status } = useSession();
+      const {status } = useSession();
     
       if (status === 'loading') {
         return (

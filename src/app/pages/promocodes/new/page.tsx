@@ -40,7 +40,7 @@ const NewPromocode: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/promocodes'); 
         }
-    },[saveSuccess])
+    },[loadingSave, router, saveSuccess])
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
