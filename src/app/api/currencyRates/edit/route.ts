@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import CurrencyRates from "@/lib/currencyRatesSchema";
 import { CurrencyRateType } from "@/models/currencyRate";
+import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     else {
         try {
-            await CurrencyRates.updateOne({_id:_id},{from: from, to: to, rate: rate, updated: new Date()});
+            await CurrencyRates.updateOne({_id:_id},{rate: rate, updated: CURRENT_DATE_TIME()});
 
             return new Response(JSON.stringify({success:true}),{status:200,headers:{
                 'Content-Type':'application/json'

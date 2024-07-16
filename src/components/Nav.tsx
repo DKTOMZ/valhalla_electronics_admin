@@ -14,7 +14,7 @@ interface NavProps {
  */
 const Nav: React.FC<NavProps> = ({showNav, setShowNav}) => {
     const inactiveLinkClass: string = 'flex flex-row items-center p-3 pr-24 text-base max-md:active:bg-orange-50 md:hover:bg-orange-50 md:dark:hover:bg-gray-600 max-md:dark:active:bg-gray-600';
-    const activeLinkClass: string = (inactiveLinkClass + ' text-orange-600 dark:text-orange-400 bg-white dark:bg-zinc-800 rounded-l-md').replace('md:hover:bg-orange-50 max-md:active:bg-orange-50 md:dark:hover:bg-gray-600 max-md:dark:active:bg-gray-600','');
+    const activeLinkClass: string = (inactiveLinkClass + ' text-orange-600 dark:text-orange-400 bg-white dark:bg-zinc-900 rounded-l-md').replace('md:hover:bg-orange-50 max-md:active:bg-orange-50 md:dark:hover:bg-gray-600 max-md:dark:active:bg-gray-600','');
     const path: string = usePathname();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {data:session} = useSession();
@@ -24,7 +24,7 @@ const Nav: React.FC<NavProps> = ({showNav, setShowNav}) => {
     }
     
     return ( 
-        <div className="flex h-full mt-0 flex-col bg-gray-200 dark:bg-zinc-700 pl-5 py-3 gap-2 text-black dark:text-white">
+        <div className="flex h-full mt-0 flex-col bg-gray-200 dark:bg-zinc-800 pl-5 py-3 gap-2 text-black dark:text-white">
             { isModalVisible ?
              <Modal callback={()=>{}} title="Logout Action" body="Are you sure you want to logout?" key={'Logout-Modal'}
              decision={ {
@@ -38,7 +38,7 @@ const Nav: React.FC<NavProps> = ({showNav, setShowNav}) => {
                     <i className="fa-solid fa-display dark:text-white"></i>
                     <div className="ml-2 dark:text-white text-lg transition-width duration-300 ease-in-out">VALHALLA ADMIN</div>
                 </div>
-                <button onClick={()=>setShowNav(!showNav)} className="dark:text-white mr-2 lg:hidden">{<i className="fa-solid fa-x fa-xl"></i>}</button>
+                <button onClick={()=>setShowNav(!showNav)} className="dark:text-white mr-4 lg:hidden">{<i className="fa-solid fa-x fa-xl"></i>}</button>
             </div>
             <Link href={'/pages/home'} className={path.includes('/home') ? activeLinkClass : inactiveLinkClass}>
                 <i className="fa-solid fa-house-user mr-2"></i>

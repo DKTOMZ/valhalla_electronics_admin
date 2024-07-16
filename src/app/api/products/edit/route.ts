@@ -1,13 +1,16 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { DbConnService } from "@/services/dbConnService";
 import {BackendServices} from "@/app/api/inversify.config";
 import Product from "@/lib/productSchema";
 import { Product as producttype } from "@/models/products";
 import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
+import { StorageService } from "@/services/storageService";
+import mongoose from "mongoose";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const storageService = BackendServices.get<StorageService>('StorageService');
 
 export async function GET(req: NextRequest) {
     
@@ -47,9 +50,16 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
 
-    await dbConnService.mongooseConnect().catch(err => new Response(JSON.stringify({error:err.message}),{status:503,headers:{
-        'Content-Type':'application/json'
-    }}))
+    let mongooseInstance: mongoose.Connection;
+
+    try {
+        mongooseInstance = await dbConnService.mongooseConnect();
+    }
+    catch(error:any) {
+        return    new Response(JSON.stringify({error:error}),{status:503,headers:{
+            'Content-Type':'application/json'
+        }})
+    }
 
     if (!formData.has('productId')) {
         return new Response(JSON.stringify({error:'productId key is missing'}),{status:400,headers:{
@@ -111,6 +121,12 @@ export async function POST(req: NextRequest) {
         }})
     }
 
+    if(formData.get('currentProperties') == 'undefined' || formData.get('currentProperties') == null){
+        return new Response(JSON.stringify({error:'currentProperties must have a non-null value'}),{status:400,headers:{
+            'Content-Type':'application/json'
+        }})
+    }
+
     const id = formData.get('productId')?.toString();
     const brand = formData.get('productBrand')?.toString();
     const name = formData.get('productName')?.toString();
@@ -121,6 +137,7 @@ export async function POST(req: NextRequest) {
     const properties = JSON.parse(formData.get('currentProperties') as any);
     const discount = formData.get('discount')?.toString();
     const stock = formData.get('stock')?.toString();
+    const currency = formData.get('currency')?.toString();
 
     formData.delete('productId');
     formData.delete('productBrand');
@@ -132,6 +149,7 @@ export async function POST(req: NextRequest) {
     formData.delete('currentProperties');
     formData.delete('discount');
     formData.delete('stock');
+    formData.delete('currency');
 
     const files: {name:string,body:Buffer}[] = [];
 
@@ -140,46 +158,6 @@ export async function POST(req: NextRequest) {
             files.push({ name: (file[1] as File).name, body: Buffer.from(await (file[1] as File).arrayBuffer()) });
         }
     }
-
-    const bucketName = process.env.S3_BUCKETNAME;
-    const region = process.env.S3_REGION;
-
-    if(!region || !bucketName || !process.env.S3_ACCESS_KEY || !process.env.S3_SECRET_ACCESS_KEY) { 
-        return new Response(JSON.stringify({error:'A credential/property is missing'}),{status:500, headers:{
-            'Content-Type':'application/json'
-        }})
-    }
-
-    const client = new S3Client({
-        region: region,
-        credentials: {
-            accessKeyId: process.env.S3_ACCESS_KEY ?? '',
-            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? ''
-        }
-    });
-
-    const imageLinks: { Key: string, link: string }[] = [];
-
-    const saveFilesToS3 = async () => {
-        for (const [, file] of files.entries()) {
-          const extension = file.name.split('.').pop();
-          const newFileName = `${Date.now()}.${extension}`;
-            await client.send(
-              new PutObjectCommand({
-                Bucket: bucketName,
-                Key: newFileName,
-                ACL: 'public-read',
-                Body: file.body,
-              })
-            );
-            imageLinks.push(
-                {
-                    Key: newFileName,
-                    link:`https://${bucketName}.s3.${region}.amazonaws.com/${newFileName}`
-                }
-            );
-        }
-    };
 
     const product = await Product.findOne<producttype>({name:name});
 
@@ -194,16 +172,34 @@ export async function POST(req: NextRequest) {
     }
 
     else {
+        const session = await mongooseInstance.startSession();
+
+        session.startTransaction();
+
         try {
 
-            await saveFilesToS3();
+            if(files.length>0) {
 
-            await Product.updateOne({_id:id},{ name, brand, description, contents, price, images:[...product.images,...imageLinks], category, properties:properties, discount: discount, stock: stock, updated: new Date() });
+                const imageLinks = await storageService.saveFilesToS3(files);
+            
+                await Product.updateOne({_id:id},{ brand, description, contents, price, images:[...product.images,...imageLinks!], category, properties:properties, discount: discount, stock: stock, currency: currency, updated: CURRENT_DATE_TIME() });
+    
+            } else {
+                await Product.updateOne({_id:id},{ brand, description, contents, price, category, properties:properties, discount: discount, stock: stock, currency: currency, updated: CURRENT_DATE_TIME() });
+            }
+
+            await session.commitTransaction();
+
+            console.log("Commit: Update Product Transaction");
 
             return new Response(JSON.stringify({success:true}),{status:201,headers:{
                 'Content-Type':'application/json'
             }});
         } catch (error:any) {
+            await session.abortTransaction();
+
+            console.log("Rollback: Update Product Transaction");
+
             if (error.message === 'Product already exists') {
                 return new Response(JSON.stringify({error:error.message}), { status: 409, headers: {
                     'Content-Type':'application/json'
@@ -212,6 +208,8 @@ export async function POST(req: NextRequest) {
             return new Response(JSON.stringify({error:error.message}), { status: 503, headers: {
                 'Content-Type':'application/json'
             }})
+        } finally {
+            session.endSession();
         }
     }
 }

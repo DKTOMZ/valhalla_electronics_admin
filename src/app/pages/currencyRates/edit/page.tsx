@@ -40,7 +40,7 @@ const EditCurrencyRate: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/currencyRates'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {
@@ -58,11 +58,11 @@ const EditCurrencyRate: React.FC = () => {
             }
             setLoading(false);
         }); 
-    },[ http, loading]);
+    },[]);
 
     useEffect(()=>{ 
         const fetchData = async() => {
-            return await http.get<CurrencyRateType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/currencyRates/fetch/id=${currencyRateId}`);
+            return await http.get<CurrencyRateType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/currencyRates/fetch?id=${currencyRateId}`);
         };
         loading && fetchData().then(response => {
             if (response.status >= 200 && response.status<=299 && response.data) {
@@ -76,7 +76,7 @@ const EditCurrencyRate: React.FC = () => {
             }
             setLoading(false);
         }); 
-    },[currencyRateId, http, loading]);
+    },[http, loading, currencyRateId]);
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -127,7 +127,9 @@ const EditCurrencyRate: React.FC = () => {
                 <h2 className="text-black dark:text-white text-lg">Edit currencyRate below</h2>
                 <div>
                     <label htmlFor='CurrencyRate-From' className='block sm:text-base font-bold text-sm dark:text-white'>From currency *</label>
-                    <select value={currencyFrom} onChange={(e)=>{
+                    <input type="text" readOnly value={currencyFrom} onBlur={()=>saveError.current.innerHTML = ''}
+                    className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
+                    {/* <select value={currencyFrom} onChange={(e)=>{
                         setCurrenciesTo(currencies.filter((currency)=>currency.shortName!=e.target.value))
                         setCurrencyFrom(e.target.value)
                         }} name="CurrencyRate-From" className="p-2 ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600">
@@ -135,12 +137,14 @@ const EditCurrencyRate: React.FC = () => {
                         {currenciesFrom.length > 0 ? currenciesFrom.map((currency,index)=>{
                             return <option key={currency._id+index} value={currency.shortName}>{currency.shortName}</option>
                         }) : null}
-                    </select>
+                    </select> */}
                 </div>
 
                 <div>
                     <label htmlFor='CurrencyRate-To' className='block sm:text-base font-bold text-sm dark:text-white'>To Currency *</label>
-                    <select value={currencyTo} onChange={(e)=>{
+                    <input type="text" readOnly value={currencyTo} onBlur={()=>saveError.current.innerHTML = ''}
+                    className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
+                    {/* <select value={currencyTo} onChange={(e)=>{
                         setCurrenciesFrom(currencies.filter((currency)=>currency.shortName!=e.target.value))
                         setCurrencyTo(e.target.value)
                         }} name="CurrencyRate-To" className="p-2 ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600">
@@ -148,7 +152,7 @@ const EditCurrencyRate: React.FC = () => {
                         {currenciesTo.length > 0 ? currenciesTo.map((currency,index)=>{
                             return <option key={currency._id+index} value={currency.shortName}>{currency.shortName}</option>
                         }) : null}
-                    </select>
+                    </select> */}
                 </div>
 
                 <div>

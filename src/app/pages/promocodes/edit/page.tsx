@@ -45,11 +45,11 @@ const EditPromocode: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/promocodes'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {
-            return await http.get<PromocodeType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/promocodes/fetch/id=${promocodeId}`);
+            return await http.get<PromocodeType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/promocodes/fetch?id=${promocodeId}`);
 
         };
         loading && fetchData().then(response => {

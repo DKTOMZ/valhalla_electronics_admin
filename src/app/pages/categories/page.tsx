@@ -43,7 +43,7 @@ const Categories: React.FC = () => {
             }
             setLoading(false)
         });
-    },[http, loading]);
+    },[loading]);
 
     const searchCategories = () => {
         setTempCategories(categories.filter((category)=>category.name.toLowerCase().includes(searchText.toLowerCase())));
@@ -51,7 +51,7 @@ const Categories: React.FC = () => {
 
     useEffect(()=>{
         searchText === '' ? setTempCategories(categories) : null;
-    },[categories, searchText])
+    },[searchText])
 
     return (
         <Layout>
@@ -64,7 +64,7 @@ const Categories: React.FC = () => {
                             setIsModalVisible(false);
                             setLoadingDelete(true);
 
-                            const response: HttpServiceResponse<GenericResponse> = await http.get(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/delete/id=${currentCategoryId}`);
+                            const response: HttpServiceResponse<GenericResponse> = await http.get(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/delete?id=${currentCategoryId}`);
 
                             if (response.data.success && currentCategoryImages.length > 0){
                                 const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/images/delete`, JSON.stringify({
@@ -97,7 +97,7 @@ const Categories: React.FC = () => {
                 <div>
                     <div className={`flex max-sm:w-full flex-row mb-2 w-96 items-center h-11 shadow-md shadow-zinc-600 dark:shadow-none focus-within:dark:shadow-sm focus-within:dark:shadow-orange-400  focus-within:shadow-orange-700 rounded-md`}>
                         <input type="search" placeholder="Search..." value={searchText} onChange={(e)=>setSearchText(e.target.value)} className={`search-bar h-full w-5/6 max-sm:w-3/4 rounded-s-md p-2 dark:text-white dark:bg-zinc-700 text-black outline-none`} />
-                        <button className="custom-search-icon h-full w-16 px-3 bg-orange-500 md:hover:bg-orange-400 max-md:active:bg-orange-400 text-white rounded-e-md" title="search" onClick={()=>searchCategories()}>
+                        <button className="custom-search-icon h-full w-16 px-3 bg-orange-600 md:hover:bg-orange-500 max-md:active:bg-orange-500 text-white rounded-e-md" title="search" onClick={()=>searchCategories()}>
                             <i className="fa-solid fa-magnifying-glass fa-xl"></i>
                         </button>
                     </div>
@@ -109,7 +109,7 @@ const Categories: React.FC = () => {
                     {loading || loadingDelete ? <Loading screen={false} />:
                         categories.length > 0 ? 
                         <table className="w-full ring-1 ring-slate-500 dark:ring-0"> 
-                            <thead className="bg-zinc-200 dark:bg-slate-600">
+                            <thead className="bg-slate-200 dark:bg-slate-600">
                                 <tr>
                                     <td className="text-black p-1 dark:text-white font-bold text-sm">Category</td>
                                     <td className="text-black text-sm font-bold dark:text-white">Actions</td>

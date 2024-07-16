@@ -7,14 +7,16 @@ import { Category, CategoryProperty } from "@/models/categories";
 import { Product } from "@/models/products";
 import { HttpService } from "@/services/httpService";
 import { ValidationService } from "@/services/validationService";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, MutableRefObject, useEffect, useRef, useState } from "react";
 import ErrorPage from "@/components/error";
 import { GenericResponse } from "@/models/genericResponse";
+import { CurrenciesType } from "@/models/currencies";
 
 const EditProduct: React.FC = () => {
 
     //Services
+    const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     const validationService = FrontendServices.get<ValidationService>('ValidationService');
 
@@ -28,6 +30,7 @@ const EditProduct: React.FC = () => {
     const [categoryName,setCategoryName] = useState('Select Category');
     const [currentProperties,setCurrentProperties] = useState<any>({});
     const [productPrice,setProductPrice] = useState(0);
+    const [productCurrency,setProductCurrency] = useState('');
     const [productDiscountPercent,setProductDiscountPercent] = useState(0);
     const [productStock,setProductStock] = useState(0);
     const [tempImages,setTempImages] = useState<File[]>([]);
@@ -41,6 +44,7 @@ const EditProduct: React.FC = () => {
     const [,setLoadingDeleteImage] = useState(false);
     const productId = useSearchParams().get('id');
     const [productExists,setProductExists] = useState(true);
+    const [currencies, setCurrencies] = useState<CurrenciesType[]>([]);
 
     //Element regs
     const saveError = useRef<HTMLInputElement>() as MutableRefObject<HTMLInputElement>;
@@ -51,14 +55,25 @@ const EditProduct: React.FC = () => {
     const categoryError = useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
     const savedImageError = useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
 
+    useEffect(()=>{
+        if(!saveSuccess && loadingSave) { 
+            setLoadingSave(false);
+            router.push('/pages/products'); 
+        }
+    },[saveSuccess])
+
     useEffect(() => {
-        const fetchData = async() => {
-            return {responseProduct: await http.get<Product>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/products/fetch/id=${productId}`),
+        const fetchCategories= async() => {
+            return {responseProduct: await http.get<Product>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/products/fetch?id=${productId}`),
             responseCategories: await http.get<Category[]>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/fetch`)};
         }
 
+        const fetchCurrencies = async() => {
+            return await http.get<CurrenciesType[]>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/currencies/fetch`);
+        };
+
         if(loading && productId){
-            fetchData().then(({responseProduct, responseCategories}) => {
+            fetchCategories().then(({responseProduct, responseCategories}) => {
                 if (responseCategories.status >= 200 && responseCategories.status<=299 && responseCategories.data) {
                     setCategories([...responseCategories.data]);
                 }
@@ -79,11 +94,16 @@ const EditProduct: React.FC = () => {
                     product.images ? setImages([...product.images]) : setImages([]);
                     setProductStock(product.stock);
                     setProductDiscountPercent(product.discount);
+                    setProductCurrency(product.currency);
                 }
 
                 if(!responseCategories && !responseProduct) {
                     setProductExists(false);
                 }
+
+                fetchCurrencies().then((response)=>{
+                    setCurrencies(response.data);
+                })
 
                 setLoading(false);
             });
@@ -132,9 +152,9 @@ const EditProduct: React.FC = () => {
             setTempImages([...tempImages,...validation]);
             setUploading(false);
         } else {
-            imageField.current.value = typeof validation === 'string' ? validation : '';
+            imageError.current.innerHTML = typeof validation === 'string' ? validation : '';
         }
-        imageField.current.value = "";
+        imageError.current.innerHTML = "";
     }
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
@@ -147,7 +167,7 @@ const EditProduct: React.FC = () => {
             categoryError.current.innerHTML = 'Category is not selected';
             return setLoadingSave(false);
         }
-        if (Object.keys(currentProperties).length != allProps.length) {
+        if (currentProperties && Object.keys(currentProperties).length != allProps.length) {
             propsError.current.innerHTML = 'One or more of the property values is not selected';
             return setLoadingSave(false);
         }
@@ -166,20 +186,20 @@ const EditProduct: React.FC = () => {
         postData.append('productContents', productContents);
         postData.append('productPrice', productPrice.toString());
         postData.append('categoryName', categoryName);
-        postData.append('currentProperties', JSON.stringify(currentProperties));
+        postData.append('currentProperties', JSON.stringify(currentProperties ? currentProperties : {}));
         postData.append('discount', productDiscountPercent.toString());
         postData.append('stock', productStock.toString());
+        postData.append('currency', productCurrency.toString());
 
         const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/products/edit/`,
             postData
         );
 
         if (response.data.success ) {
+            setTempImages([]);
             setSaveSuccess(true);
-			setTempImages([]);
         } else {
             saveError.current.innerHTML = response.data.error ?? response.statusText;
-            setSaveSuccess(false);
             setLoadingSave(false);
         }
     }
@@ -245,8 +265,6 @@ const EditProduct: React.FC = () => {
             <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
             { saveSuccess ? <Modal key={'Edit-Product'} callback={()=>{
                 setSaveSuccess(false);
-                setLoadingSave(false);
-                setLoading(true);
             }} body="Your product has been updated successfully!" title={'Success!'}/> : null}
                 <h2 className="text-black dark:text-white text-lg">Edit product below</h2>
 
@@ -312,7 +330,7 @@ const EditProduct: React.FC = () => {
                         <div ref={savedImageError} className="text-red-500 mt-4 mb-4"></div>
                         <div className="flex gap-2 flex-wrap mb-4">
                             { Images.map((image,index)=>{
-                                return <div key={index} className="relative w-40 h-40 mr-3">
+                                return <div key={index} className="relative w-40 h-40 lg:w-52 lg:h-52 mr-3">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img className="object-cover w-full h-full" src={`${image.link}`} alt="product-image" />
                                     <button type="button" title="Delete" onClick={(e)=>handleImageDeletion(e,image)} className="absolute -top-5 -right-5 bg-white dark:bg-zinc-800"><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
@@ -328,7 +346,7 @@ const EditProduct: React.FC = () => {
                         <div className="text-xl text-black dark:text-white">Unsaved images</div>
                         <div className="flex gap-2 flex-wrap mb-4">
                             { tempImages.map((image,index)=>{
-                                return <div key={`${index}-${image.name}`} className="relative w-40 h-40 mr-5">
+                                return <div key={`${index}-${image.name}`} className="relative w-40 h-40 lg:w-52 lg:h-52 mr-5">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img className="object-cover w-full h-full" src={`${URL.createObjectURL(image)}`} alt="product-image" />
                                     <button type="button" title="Delete" onClick={(e)=>handleTempImageDeletion(e,index)} className="absolute cursor-pointer -top-5 -right-5 bg-white dark:bg-zinc-800"><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
@@ -382,10 +400,20 @@ const EditProduct: React.FC = () => {
                 </div>
 
                 <div>
-                    <label htmlFor='Product-Price' className='sm:text-base font-bold text-sm dark:text-white'>Price (Ksh) *</label>
+                    <label htmlFor='Product-Price' className='sm:text-base font-bold text-sm dark:text-white'>Price *</label>
                     <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" required name="Product-Price" placeholder="Price" value={productPrice}
                     onChange={(e)=>setProductPrice(e.target.value ? e.target.valueAsNumber : 0)}
                     className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
+                </div>
+
+                <div>
+                    <label htmlFor='ProductCurrency' className='block sm:text-base font-bold text-sm dark:text-white'>Currency *</label>
+                    <select value={productCurrency} onChange={(e)=>{setProductCurrency(e.target.value)
+                        }} name="ProductCurrency" className="p-2 w-full ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600">
+                        {currencies.length > 0 ? currencies.map((currency,index)=>{
+                            return <option key={currency._id+index} value={currency.shortName}>{currency.shortName}</option>
+                        }) : null}
+                    </select>
                 </div>
 
                 <div>

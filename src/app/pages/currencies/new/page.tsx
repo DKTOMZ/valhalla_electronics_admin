@@ -30,7 +30,7 @@ const NewCurrency: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/currencies'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

@@ -1,12 +1,13 @@
-//import {BackendServices} from "@/app/api/inversify.config";
+import {BackendServices} from "@/app/api/inversify.config";
+import { StorageService } from "@/services/storageService";
 //import Product from "@/lib/productSchema";
 //import { DbConnService } from "@/services/dbConnService";
-import { S3 } from "@aws-sdk/client-s3";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 //Services
 //const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const storageService = BackendServices.get<StorageService>('StorageService');
 
 export async function POST(req: NextRequest) {
 
@@ -45,14 +46,6 @@ export async function POST(req: NextRequest) {
         }})
     }
 
-    const client = new S3({
-        region: region,
-        credentials: {
-            accessKeyId: process.env.S3_ACCESS_KEY ?? '',
-            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? ''
-        }
-    });
-
     // await dbConnService.mongooseConnect().catch(err => new Response(JSON.stringify({error:err}),{status:503,headers:{
     //     'Content-Type':'application/json'
     // }}));
@@ -60,7 +53,7 @@ export async function POST(req: NextRequest) {
     const imageIdentifiers = images.map((image)=>({Key: image.Key}))
 
     try {
-        await client.deleteObjects({Bucket:bucketName, Delete: {Objects: imageIdentifiers}})
+        await storageService.deleteS3Items({Objects: imageIdentifiers});
     } catch (error) {
         console.log(error);
         return new Response(JSON.stringify({error:'An error occurred while deleting one or more images'}),{status:500,headers:{

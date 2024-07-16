@@ -36,7 +36,7 @@ const NewCurrencyRate: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/currencyRates'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {
@@ -54,7 +54,7 @@ const NewCurrencyRate: React.FC = () => {
             }
             setLoading(false);
         }); 
-    },[ http, loading]);
+    },[]);
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

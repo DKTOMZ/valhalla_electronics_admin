@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import ShippingRates from "@/lib/shippingRatesSchema";
 import { ShippingRate as ShippingRateType } from "@/models/shippingRate";
+import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
@@ -82,10 +83,10 @@ export async function POST(req: NextRequest) {
     else {
         try {
 
-            if(maximumDeliveryDays){
-                await ShippingRates.updateOne({_id:_id},{name: name, minimumDeliveryDays: minimumDeliveryDays, maximumDeliveryDays: maximumDeliveryDays, rate: rate, updated: new Date()});
+            if(maximumDeliveryDays > 0){
+                await ShippingRates.updateOne({_id:_id},{minimumDeliveryDays: minimumDeliveryDays, maximumDeliveryDays: maximumDeliveryDays, rate: rate, updated: CURRENT_DATE_TIME()});
             } else {
-                await ShippingRates.updateOne({_id:_id},{name: name, minimumDeliveryDays: minimumDeliveryDays, rate: rate, updated: new Date()});
+                await ShippingRates.updateOne({_id:_id},{minimumDeliveryDays: minimumDeliveryDays, maximumDeliveryDays: null,  rate: rate, updated: CURRENT_DATE_TIME()});
             }
 
             return new Response(JSON.stringify({success:true}),{status:200,headers:{

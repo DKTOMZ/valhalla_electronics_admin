@@ -5,6 +5,7 @@ import Modal from "@/components/modal";
 import {FrontendServices} from "@/lib/inversify.config";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
+import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, MutableRefObject, useEffect, useRef, useState } from "react";
 
@@ -40,7 +41,7 @@ const NewPromocode: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/promocodes'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

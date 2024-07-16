@@ -1,6 +1,6 @@
 import { SendMailOptions, Transporter, createTransport } from "nodemailer";
 import { injectable } from "inversify";
-import { DevLoggerService } from "./devLoggerService";
+import { LoggerService } from "./LoggerService";
 import {FrontendServices} from "@/lib/inversify.config";
 
 /**
@@ -10,7 +10,7 @@ import {FrontendServices} from "@/lib/inversify.config";
 export class MailService {
     
     private transporter: Transporter;
-    private devLogger: DevLoggerService;
+    private devLogger: LoggerService;
     
     constructor() {
         this.transporter = createTransport({
@@ -20,7 +20,7 @@ export class MailService {
                 pass: process.env.NEXT_PUBLIC_VALHALLA_EMAIL_PASSWORD
             }
         });
-        this.devLogger = FrontendServices.get<DevLoggerService>('DevLoggerService');
+        this.devLogger = FrontendServices.get<LoggerService>('DevLoggerService');
     }
 
 /** Inititate mail sending */

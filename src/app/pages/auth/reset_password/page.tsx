@@ -56,7 +56,7 @@ const ResetPassword = () => {
 
         setLoadingSubmit(true);
 
-        const response: HttpServiceResponse<GenericResponse> = await http.get(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/confirm/resetpassword/email=${email}`);
+        const response: HttpServiceResponse<GenericResponse> = await http.get(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/confirm/resetpassword?email=${email}`);
 
         if (response.data.success) {
             setResetPasswordSuccess(response.data.success);
@@ -69,7 +69,7 @@ const ResetPassword = () => {
 
     return (
         <LayoutAlt>
-            <div className="h-full flex flex-col items-center justify-center">
+            <div className="h-screen flex flex-col items-center justify-center">
                 <title>Valhalla - ResetPassword</title>
                 <Logo height={120} width={120} />
                 { resetPasswordSuccess ? <Modal title={'Success!'} body={'Please check your email for password reset link'} 

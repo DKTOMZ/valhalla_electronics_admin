@@ -22,7 +22,7 @@ const ChangePassword: React.FC = () => {
   const validationService = FrontendServices.get<ValidationService>('ValidationService');
 
   //token
-    const [token,setToken] = useState<string>("");
+    const [token,setToken] = useState(useSearchParams().get("token"));
 
   //Http request handling
   const [loadingSubmit,setLoadingSubmit] = useState(false);
@@ -46,13 +46,13 @@ const ChangePassword: React.FC = () => {
   //handle verificationResponse fetching
   useEffect(()=>{
     const fetchVerificationResponse = async () => {
-      return await http.get(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/confirm/resetpassword/verify/token=${token}`);
+      return await http.get(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/confirm/resetpassword/verify?token=${token}`);
     }
     fetchVerificationResponse().then(response => {
           setverificationResponse(response.data);
           setLoading(false);
     });
-  },[http, token]);
+  },[token]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -67,14 +67,6 @@ const ChangePassword: React.FC = () => {
     mediaQuery.removeEventListener('change',handleChange);
     };
   }, []);
-
-    //Incoming params
-    const tokenParam = useSearchParams().get("token");
-    if (!tokenParam) {
-        return <ErrorPage title="Error: 404" error="Invalid Link." />;
-    } else {
-        setToken(tokenParam);
-    }
 
 
     //handle form submission
@@ -101,6 +93,11 @@ const ChangePassword: React.FC = () => {
     setLoadingSubmit(false);
   
   }
+
+  if(!token) {
+    return <ErrorPage title="Error: 404" error="Invalid link." />;
+  }
+
 
   if (loading) {
     return <Loading />
@@ -137,12 +134,12 @@ const ChangePassword: React.FC = () => {
                       <div ref={passwordError} className='text-red-500 text-center'></div>
                   </div>
                   <div className='flex flex-col'>
-                      <label htmlFor='signup-confirm-password' className='sm:text-base text-sm dark:text-white'>Confirm Password</label>
+                      <label htmlFor='reset-confirm-password' className='sm:text-base text-sm dark:text-white'>Confirm Password</label>
                       <div className='relative'>
                           <input ref={confirmPasswordElement} onBlur={()=>{
                               resetError.current ? resetError.current.innerHTML = '' : null;
                               validationService.comparePasswords(password,confirmPassword,passwordError,confirmPasswordError);
-                          }} value={confirmPassword} onChange={(e)=>setconfirmPassword(e.target.value)} placeholder='******' required autoComplete='current-password' className='px-2 outline-0 outline-orange-400 dark:bg-neutral-600 dark:text-white w-full rounded-md h-10 ring-1 ring-orange-400 border-0 focus:ring-2' type={confirmPasswordVisible ? 'text' : 'password'} name='reset-confirm-password'/>
+                          }} value={confirmPassword} onChange={(e)=>setconfirmPassword(e.target.value)} placeholder='******' required className='px-2 outline-0 outline-orange-400 dark:bg-neutral-600 dark:text-white w-full rounded-md h-10 ring-1 ring-orange-400 border-0 focus:ring-2' type={confirmPasswordVisible ? 'text' : 'password'} name='reset-confirm-password'/>
                           { confirmPasswordVisible ? 
                           <i onClick={()=>setConfirmPasswordVisible(false)} className="cursor-pointer fa-regular fa-eye-slash fa-lg absolute bottom-5 right-2 dark:text-white"></i>
                           : <i onClick={()=>setConfirmPasswordVisible(true)} className="cursor-pointer fa-regular fa-eye fa-lg absolute bottom-5 right-2 dark:text-white"></i>

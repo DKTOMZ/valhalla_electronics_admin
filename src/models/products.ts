@@ -11,5 +11,6 @@ export interface Product {
     discount: number,
     stock: number,
     created: Date,
-    updated: Date
+    updated: Date,
+    currency: string
 }

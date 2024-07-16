@@ -33,7 +33,7 @@ const NewShippingRate: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/shippingRates'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -96,7 +96,7 @@ const NewShippingRate: React.FC = () => {
                     <label htmlFor='Min-Days' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Minimum Delivery Days *</label>
                     <input onBlur={()=>saveError.current.innerHTML = ''} type="number" required min={1} max={10} name="Min-Days" placeholder="Min Days" value={minimumDeliveryDays}
                     onChange={(e)=>{
-                        if(maximumDeliveryDays <= minimumDeliveryDays){
+                        if(maximumDeliveryDays <= minimumDeliveryDays && e.target.valueAsNumber > minimumDeliveryDays){
                             setMaximumDeliveryDays(e.target.valueAsNumber);
                         }
                         setMinimumDeliveryDays(e.target.valueAsNumber)

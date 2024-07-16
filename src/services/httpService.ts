@@ -1,7 +1,7 @@
 import { HttpServiceResponse } from "@/models/httpServiceResponse";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { injectable } from "inversify";
-import { DevLoggerService } from "./devLoggerService";
+import { LoggerService } from "./LoggerService";
 import {FrontendServices} from "@/lib/inversify.config";
 
 /**
@@ -9,9 +9,9 @@ import {FrontendServices} from "@/lib/inversify.config";
  */
 @injectable()
 export class HttpService {
-    private devLogger: DevLoggerService;
+    private devLogger: LoggerService;
     constructor() {
-        this.devLogger = FrontendServices.get<DevLoggerService>('DevLoggerService');
+        this.devLogger = FrontendServices.get<LoggerService>('DevLoggerService');
     }
     /** Make HTTP GET request */
     get = async<T = any>(url:string, config?: AxiosRequestConfig): Promise<HttpServiceResponse<T>> => {

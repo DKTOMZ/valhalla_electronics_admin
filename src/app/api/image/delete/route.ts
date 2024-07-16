@@ -1,12 +1,13 @@
 import {BackendServices} from "@/app/api/inversify.config";
 import Product from "@/lib/productSchema";
 import { DbConnService } from "@/services/dbConnService";
-import { S3 } from "@aws-sdk/client-s3";
+import { StorageService } from "@/services/storageService";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const storageService = BackendServices.get<StorageService>('StorageService');
 
 export async function POST(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
@@ -41,29 +42,12 @@ export async function POST(req: NextRequest) {
         'Content-Type':'application/json'
     }}) }
 
-    const bucketName = process.env.S3_BUCKETNAME;
-    const region = process.env.S3_REGION;
-
-    if(!region || !bucketName || !process.env.S3_ACCESS_KEY || !process.env.S3_SECRET_ACCESS_KEY) { 
-        return new Response(JSON.stringify({error:'A credential/property is missing'}),{status:500, headers:{
-            'Content-Type':'application/json'
-        }})
-    }
-
-    const client = new S3({
-        region: region,
-        credentials: {
-            accessKeyId: process.env.S3_ACCESS_KEY ?? '',
-            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? ''
-        }
-    });
-
     await dbConnService.mongooseConnect().catch(err => new Response(JSON.stringify({error:err}),{status:503,headers:{
         'Content-Type':'application/json'
     }}));
 
     try {
-        await client.deleteObject({Bucket:bucketName,Key:image.Key});
+        await storageService.deleteS3Item({Key:image.Key});
 
         await Product.updateOne({_id:id},{$pull: {images: {Key: image.Key}}});
 

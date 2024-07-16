@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         }})
     }
 
-    const { name, symbol }:{name: string, symbol: Product} = await req.json();
+    const { name, shortName, symbol }:{name: string, shortName: string, symbol: Product} = await req.json();
 
     await dbConnService.mongooseConnect().catch(err => new Response(JSON.stringify({error:err.message}),{status:503,headers:{
         'Content-Type':'application/json'
@@ -52,6 +52,12 @@ export async function POST(req: NextRequest) {
 
     if (!name) {
         return new Response(JSON.stringify({error:'name key is missing'}),{status:400,headers:{
+            'Content-Type':'application/json'
+        }})
+    }
+
+    if (!shortName) {
+        return new Response(JSON.stringify({error:'shortName key is missing'}),{status:400,headers:{
             'Content-Type':'application/json'
         }})
     }
@@ -70,7 +76,7 @@ export async function POST(req: NextRequest) {
             throw new Error('Currency already exists');
         }
 
-        await Currency.create({ name: name, symbol: symbol});
+        await Currency.create({ name: name, shortName: shortName, symbol: symbol});
 
         return new Response(JSON.stringify({success:true}),{status:201,headers:{
             'Content-Type':'application/json'

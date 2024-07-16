@@ -38,11 +38,11 @@ const EditShippingRate: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/shippingRates'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {
-            return await http.get<ShippingRateType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/shippingRates/fetch/id=${shippingRateId}`);
+            return await http.get<ShippingRateType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/shippingRates/fetch?id=${shippingRateId}`);
         };
         loading && fetchData().then(response => {
             if (response.status >= 200 && response.status<=299 && response.data) {
@@ -60,7 +60,7 @@ const EditShippingRate: React.FC = () => {
             }
             setLoading(false);
         }); 
-    },[shippingRateId, http, loading]);
+    },[http, loading, shippingRateId]);
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -68,7 +68,7 @@ const EditShippingRate: React.FC = () => {
             _id: string|null
             name: string
             minimumDeliveryDays: number,
-            maximumDeliveryDays?: number,
+            maximumDeliveryDays?: number|null,
             rate: number
         } = {
             _id: shippingRateId,
@@ -79,6 +79,9 @@ const EditShippingRate: React.FC = () => {
 
         if(includeMaxDays){
             data.maximumDeliveryDays = maximumDeliveryDays;
+        } else {
+            data.maximumDeliveryDays = null;
+
         }
         
         setLoadingSave(true);
@@ -128,8 +131,8 @@ const EditShippingRate: React.FC = () => {
                 
                 <div>
                     <label htmlFor='Name' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Name *</label>
-                    <input onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Name" placeholder="Name" value={name}
-                    onChange={(e)=>setName(e.target.value)}
+                    <input readOnly onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Name" placeholder="Name" value={name}
+                    //onChange={(e)=>setName(e.target.value)}
                     className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>
 
@@ -137,7 +140,7 @@ const EditShippingRate: React.FC = () => {
                     <label htmlFor='Min-Days' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Minimum Delivery Days *</label>
                     <input onBlur={()=>saveError.current.innerHTML = ''} type="number" required min={1} max={10} name="Min-Days" placeholder="Min Days" value={minimumDeliveryDays}
                     onChange={(e)=>{
-                        if(maximumDeliveryDays <= minimumDeliveryDays){
+                        if(maximumDeliveryDays <= minimumDeliveryDays && e.target.valueAsNumber > minimumDeliveryDays){
                             setMaximumDeliveryDays(e.target.valueAsNumber);
                         }
                         setMinimumDeliveryDays(e.target.valueAsNumber)

@@ -4,6 +4,7 @@ import Loading from "@/components/loading";
 import Modal from "@/components/modal";
 import {FrontendServices} from "@/lib/inversify.config";
 import { Category, CategoryProperty } from "@/models/categories";
+import { CurrenciesType } from "@/models/currencies";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
 import { ValidationService } from "@/services/validationService";
@@ -27,6 +28,7 @@ const NewProduct: React.FC = () => {
     const [categoryName,setCategoryName] = useState('Select Category');
     const [currentProperties,setCurrentProperties] = useState<any>({});
     const [productPrice,setProductPrice] = useState(0);
+    const [productCurrency,setProductCurrency] = useState('');
     const [productDiscountPercent,setProductDiscountPercent] = useState(0);
     const [productStock,setProductStock] = useState(0);
     const [tempImages,setTempImages] = useState<File[]>([]);
@@ -34,6 +36,7 @@ const NewProduct: React.FC = () => {
     const [loading,setLoading] = useState(false);
     const [loadingFetch,setLoadingFetch] = useState(true);
     const [uploading,setUploading] = useState(false);
+    const [currencies, setCurrencies] = useState<CurrenciesType[]>([]);
     // const [isModalVisible,setIsModalVisible] = useState(false);
     const [dragActive,setDragActive] = useState(false);
     const [allProps,setAllProps] = useState<CategoryProperty[]>([]);
@@ -51,7 +54,35 @@ const NewProduct: React.FC = () => {
             setLoading(false);
             router.push('/pages/products'); 
         }
-    },[loading, router, saveSuccess]);
+    },[saveSuccess]);
+
+    useEffect(()=>{ 
+        const fetchCurrencies = async() => {
+            return await http.get<CurrenciesType[]>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/currencies/fetch`);
+        };
+
+        const fetchCategories = async() => {
+            return await http.get<Category[]>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/fetch`);
+        };
+
+        loadingFetch && fetchCurrencies().then(response => {
+            if (response.status >= 200 && response.status<=299 && response.data) {
+                setCurrencies(response.data);
+                const first = response.data.at(0);
+                if(first){
+                    setProductCurrency(first.shortName);
+                }
+            }
+
+            fetchCategories().then(response => {
+                if (response.status >= 200 && response.status<=299 && response.data) {
+                    setCategories([...response.data]);
+                }
+                setLoadingFetch(false);
+            });
+            
+        }); 
+    },[]);
 
     useEffect(()=>{
         const fetchData = async() => {
@@ -63,7 +94,7 @@ const NewProduct: React.FC = () => {
             }
             setLoadingFetch(false);
         });
-    },[http,loadingFetch]);
+    },[]);
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -102,10 +133,10 @@ const NewProduct: React.FC = () => {
             setTempImages([...tempImages,...validation]);
             setUploading(false);
         } else {
-            imageField.current.value = typeof validation === 'string' ? validation : '';
+            imageError.current.innerHTML = typeof validation === 'string' ? validation : '';
         }
 
-        imageField.current.value = "";
+        imageError.current.innerHTML = "";
     };
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
@@ -146,6 +177,7 @@ const NewProduct: React.FC = () => {
         postData.append('currentProperties', JSON.stringify(currentProperties));
         postData.append('discount', productDiscountPercent.toString());
         postData.append('stock', productStock.toString());
+        postData.append('currency', productCurrency.toString());
 
 
         const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/products/save/`,
@@ -242,7 +274,7 @@ const NewProduct: React.FC = () => {
                     { tempImages.length > 0 ? 
                     <div className="flex gap-2 flex-wrap mb-4">
                         { tempImages.map((image,index)=>{
-                            return <div key={index} className="relative w-40 h-40 mr-3">
+                            return <div key={index} className="relative w-40 h-40 lg:w-52 lg:h-52 mr-3">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img className="object-cover w-full h-full" src={`${URL.createObjectURL(image)}`} alt="product-image" />
                                 <button title="Delete" onClick={()=>setTempImages([...tempImages.slice(0,index),...tempImages.slice(index+1)])} className="absolute -top-5 -right-5 bg-white dark:bg-zinc-800"><i className="fa-regular fa-circle-xmark fa-xl text-orange-500"></i></button>
@@ -294,10 +326,20 @@ const NewProduct: React.FC = () => {
                 </div>
 
                 <div>
-                    <label htmlFor='Product-Price' className='sm:text-base font-bold text-sm dark:text-white'>Price (Ksh) *</label>
+                    <label htmlFor='Product-Price' className='sm:text-base font-bold text-sm dark:text-white'>Price *</label>
                     <input onBlur={()=>saveError.current.innerHTML = ''}  type="number" required name="Product-Price" placeholder="Price" value={productPrice}
                     onChange={(e)=>setProductPrice(e.target.value ? e.target.valueAsNumber : 0)}
                     className="px-2  outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
+                </div>
+
+                <div>
+                    <label htmlFor='ProductCurrency' className='block sm:text-base font-bold text-sm dark:text-white'>Currency *</label>
+                    <select value={productCurrency} onChange={(e)=>{setProductCurrency(e.target.value)
+                        }} name="ProductCurrency" className="p-2 w-full ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600">
+                        {currencies.length > 0 ? currencies.map((currency,index)=>{
+                            return <option key={currency._id+index} value={currency.shortName}>{currency.shortName}</option>
+                        }) : null}
+                    </select>
                 </div>
 
                 <div>

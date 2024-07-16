@@ -84,7 +84,7 @@ const SignUp = () => {
 
     return (
         <LayoutAlt>
-            <div className="h-full mb-6 flex flex-col items-center justify-center">
+            <div className="h-screen mb-6 flex flex-col items-center justify-center">
                 <title>Valhalla - Signup</title>
                 <Logo height={120} width={120} />
                 { signupSuccess ? <Modal title={'Success!'} body={'Please check your email for verification then login'} 

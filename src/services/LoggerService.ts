@@ -4,7 +4,7 @@ import { injectable } from "inversify";
  * Service to handle console logging for dev environment
  */
 @injectable()
-export class DevLoggerService {
+export class LoggerService {
     private readonly nodeEnv: string | undefined;
     constructor(){
         this.nodeEnv = process.env.NODE_ENV;

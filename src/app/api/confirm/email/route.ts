@@ -4,6 +4,7 @@ import {BackendServices} from "@/app/api/inversify.config";
 import { JWTService } from "@/services/jwtService";
 import { AdminServer } from "@/models/Admin";
 import { NextRequest } from "next/server";
+import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 
 
 //Services
@@ -58,7 +59,7 @@ export async  function GET(req: NextRequest) {
             });
         }
     
-        await Admin.updateOne({ _id: adminId },{ emailVerified: true, updated: new Date()});
+        await Admin.updateOne({ _id: adminId },{ emailVerified: true, updated: CURRENT_DATE_TIME()});
         
         return new Response(JSON.stringify({success:true}),{
             status:200,

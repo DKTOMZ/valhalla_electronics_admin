@@ -4,9 +4,11 @@ import { DbConnService } from "@/services/dbConnService";
 import {BackendServices} from "@/app/api/inversify.config";
 import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { StorageService } from "@/services/storageService";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const storageService = BackendServices.get<StorageService>('StorageService');
 
 export async function GET(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
@@ -104,6 +106,12 @@ export async function POST(req: NextRequest) {
         }})
     }
 
+    if(formData.get('currentProperties') == 'undefined' || formData.get('currentProperties') == null){
+        return new Response(JSON.stringify({error:'currentProperties must have a non-null value'}),{status:400,headers:{
+            'Content-Type':'application/json'
+        }})
+    }
+
     const name = formData.get('productName')?.toString();
     const brand = formData.get('productBrand')?.toString();
     const description = formData.get('productDescription')?.toString();
@@ -113,6 +121,7 @@ export async function POST(req: NextRequest) {
     const properties = JSON.parse(formData.get('currentProperties') as any);
     const discount = formData.get('discount')?.toString();
     const stock = formData.get('stock')?.toString();
+    const currency = formData.get('currency')?.toString();
 
     formData.delete('productName');
     formData.delete('productBrand');
@@ -123,6 +132,7 @@ export async function POST(req: NextRequest) {
     formData.delete('currentProperties');
     formData.delete('discount');
     formData.delete('stock');
+    formData.delete('currency');
 
     const files: {name:string,body:Buffer}[] = [];
 
@@ -137,46 +147,6 @@ export async function POST(req: NextRequest) {
             'Content-Type':'application/json'
         }})
     }
-    
-    const bucketName = process.env.S3_BUCKETNAME;
-    const region = process.env.S3_REGION;
-
-    if(!region || !bucketName || !process.env.S3_ACCESS_KEY || !process.env.S3_SECRET_ACCESS_KEY) { 
-        return new Response(JSON.stringify({error:'A credential/property is missing'}),{status:500, headers:{
-            'Content-Type':'application/json'
-        }})
-    }
-
-    const client = new S3Client({
-        region: region,
-        credentials: {
-            accessKeyId: process.env.S3_ACCESS_KEY,
-            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY
-        }
-    });
-
-    const imageLinks: { Key: string, link: string }[] = [];
-
-    const saveFilesToS3 = async () => {
-        for (const [, file] of files.entries()) {
-          const extension = file.name.split('.').pop();
-          const newFileName = `${Date.now()}.${extension}`;
-            await client.send(
-              new PutObjectCommand({
-                Bucket: bucketName,
-                Key: newFileName,
-                ACL: 'public-read',
-                Body: file.body,
-              })
-            );
-            imageLinks.push(
-                {
-                    Key: newFileName,
-                    link:`https://${bucketName}.s3.${region}.amazonaws.com/${newFileName}`
-                }
-            );
-        }
-    };
 
     try { 
 
@@ -186,9 +156,9 @@ export async function POST(req: NextRequest) {
             throw new Error('Product already exists');
         }
 
-        await saveFilesToS3();
+            const imageLinks = await storageService.saveFilesToS3(files);
 
-        await Product.create({ name, brand, description, contents, price, images:imageLinks, category, properties:properties, discount: discount, stock: stock});
+        await Product.create({ name, brand, description, contents, price, images:imageLinks, category, properties:properties, discount: discount, stock: stock, currency: currency});
 
         return new Response(JSON.stringify({success:true}),{status:201,headers:{
             'Content-Type':'application/json'

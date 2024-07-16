@@ -15,7 +15,7 @@
 }
 
 table tr td {
-    @apply px-2 py-2 border border-slate-100 dark:border-gray-600;
+    @apply px-2 py-2 border border-zinc-800 dark:border-zinc-400;
 }
 
 

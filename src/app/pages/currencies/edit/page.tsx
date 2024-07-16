@@ -35,11 +35,11 @@ const EditCurrency: React.FC = () => {
             setLoadingSave(false);
             router.push('/pages/currencies'); 
         }
-    },[loadingSave, router, saveSuccess])
+    },[saveSuccess])
 
     useEffect(()=>{ 
         const fetchData = async() => {
-            return await http.get<CurrenciesType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/currencies/fetch/id=${currencyId}`);
+            return await http.get<CurrenciesType>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/currencies/fetch?id=${currencyId}`);
         };
         loading && fetchData().then(response => {
             if (response.status >= 200 && response.status<=299 && response.data) {
@@ -53,7 +53,7 @@ const EditCurrency: React.FC = () => {
             }
             setLoading(false);
         }); 
-    },[currencyId, http, loading]);
+    },[http, loading, currencyId]);
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -97,7 +97,7 @@ const EditCurrency: React.FC = () => {
                 <h2 className="text-black dark:text-white text-lg">Edit currency below</h2>
                 <div>
                     <label htmlFor='Currency-Name' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Name *</label>
-                    <input onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Currency-Name" placeholder="Currency Name" value={currencyName}
+                    <input readOnly onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Currency-Name" placeholder="Currency Name" value={currencyName}
                     onChange={(e)=>setCurrencyName(e.target.value)}
                     className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>
