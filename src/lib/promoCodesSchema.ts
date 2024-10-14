@@ -1,6 +1,8 @@
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
+import { UtilService } from "@/services/utilService";
 import mongoose from "mongoose";
+import { FrontendServices } from "./inversify.config";
 
+const util = FrontendServices.get<UtilService>('UtilService');
 /**
  * promoCode schema for mongodb. Used to create a promo code before db operations.
  */
@@ -20,12 +22,12 @@ const PromocodeSchema = new mongoose.Schema({
     created: {
         type: Date,
         required: false,
-        default: CURRENT_DATE_TIME()
+        default: util.getCurrentDateTime()
     },
     updated: {
         type: Date,
         required: false,
-        default: CURRENT_DATE_TIME()
+        default: util.getCurrentDateTime()
     }
 },{ versionKey: false });
 

@@ -12,6 +12,8 @@ import React, { FormEvent, MutableRefObject, useEffect, useRef, useState } from 
 import ErrorPage from "@/components/error";
 import { GenericResponse } from "@/models/genericResponse";
 import { CurrenciesType } from "@/models/currencies";
+import { UtilService } from "@/services/utilService";
+import { FormSubmitButton } from "@/components/form_submit_button";
 
 const EditProduct: React.FC = () => {
 
@@ -19,6 +21,7 @@ const EditProduct: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     const validationService = FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 
     //State variables
     const [productName,setProductName] = useState('');
@@ -90,7 +93,12 @@ const EditProduct: React.FC = () => {
                     const currentCategoryProps = responseCategories.data.filter(category=>category.name === product.category)
                     currentCategoryProps && currentCategoryProps[0] && currentCategoryProps[0].properties ? setAllProps(responseCategories.data.filter(category=>category.name === product.category)[0]?.properties)
                         : null;
-                    setCurrentProperties(product.properties);
+                    responseCategories.data.filter(category=>category.name === product.category)[0]?.properties.forEach((c)=>{
+                        if(product.properties && !product.properties.hasOwnProperty(c.name)){
+                            currentProperties[c.name] = '';
+                        }
+                    });
+                    setCurrentProperties({...currentProperties,...product.properties});
                     product.images ? setImages([...product.images]) : setImages([]);
                     setProductStock(product.stock);
                     setProductDiscountPercent(product.discount);
@@ -140,7 +148,7 @@ const EditProduct: React.FC = () => {
 
         imageError.current.innerHTML = '';
         if ((files.length+Images.length) > 3) {
-            imageError.current.innerHTML = 'Only a max of 3 images is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 3 images is allowed');
             imageBox.current.focus();
             return;
         }
@@ -152,7 +160,7 @@ const EditProduct: React.FC = () => {
             setTempImages([...tempImages,...validation]);
             setUploading(false);
         } else {
-            imageError.current.innerHTML = typeof validation === 'string' ? validation : '';
+            util.handleErrorInputField(imageError,typeof validation === 'string' ? validation : '');
         }
         imageError.current.innerHTML = "";
     }
@@ -164,15 +172,22 @@ const EditProduct: React.FC = () => {
             savedImageError.current.innerHTML = '';
         }
         if (categoryName === 'Select Category') {
-            categoryError.current.innerHTML = 'Category is not selected';
+            util.handleErrorInputField(categoryError,'Category is not selected');
             return setLoadingSave(false);
         }
         if (currentProperties && Object.keys(currentProperties).length != allProps.length) {
-            propsError.current.innerHTML = 'One or more of the property values is not selected';
+            util.handleErrorInputField(propsError,'One or more of the property values is not selected');
             return setLoadingSave(false);
         }
+
+        if ((tempImages.length+Images.length) !== 3) {
+            util.handleErrorInputField(imageError,'Please upload 3 images');
+            imageBox.current.focus();
+            return setLoadingSave(false);
+        }
+
         if ((tempImages.length+Images.length) > 3) {
-            imageError.current.innerHTML = 'Only a max of 3 images is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 3 images is allowed');
             imageBox.current.focus();
             return setLoadingSave(false);
         }
@@ -199,7 +214,7 @@ const EditProduct: React.FC = () => {
             setTempImages([]);
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error ?? response.statusText;
+            util.handleErrorInputField(saveError,response.data.error||response.statusText);
             setLoadingSave(false);
         }
     }
@@ -211,7 +226,7 @@ const EditProduct: React.FC = () => {
         }
         saveError.current.innerHTML = '';
         e.preventDefault();
-        if (Images.length === 1) { return savedImageError.current.innerHTML = 'There should be at least 1 image saved'}
+        if (Images.length === 1) { return util.handleErrorInputField(savedImageError,'There should be at least 1 image saved'); }
 
         setLoadingDeleteImage(true);
         const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/image/delete/`, {
@@ -219,7 +234,7 @@ const EditProduct: React.FC = () => {
             image: image
         })
         if (response.data.error) {
-            return savedImageError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(savedImageError,response.data.error||response.statusText);
         }
 
         setLoadingDeleteImage(false);
@@ -262,7 +277,7 @@ const EditProduct: React.FC = () => {
     return (
         <Layout>
             <title>Valhalla - Edit Product</title>
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
             { saveSuccess ? <Modal key={'Edit-Product'} callback={()=>{
                 setSaveSuccess(false);
             }} body="Your product has been updated successfully!" title={'Success!'}/> : null}
@@ -293,7 +308,7 @@ const EditProduct: React.FC = () => {
                             setCurrentCategory(curr)
                             setAllProps([...curr.properties])
                             while (curr['parentCategory']._id) {
-                                setAllProps([...allProps,...categories.filter(category=>category.name === e.target.value)[0].properties]);
+                                setAllProps([...curr.properties,...curr['parentCategory'].properties]);
                                 curr = curr.parentCategory;
                             }
                         }} name="Current-Category" className="p-2 ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600">
@@ -307,10 +322,23 @@ const EditProduct: React.FC = () => {
                     <h3 className="text-black mt-3 dark:text-white text-base font-bold">Properties</h3>
                     <div ref={propsError} className='text-red-500'></div>
                     {allProps.map((property,index)=>{
+                        if(property.custom){
+                            return <div key={index+property.name}>
+                                <label htmlFor={property.name} className='block sm:text-sm italic text-sm dark:text-white'>{property.name} *</label> 
+                                <input key={categoryName+property.name} onBlur={()=>saveError.current.innerHTML = ''} type="text" required placeholder="Enter custom value" name={property.name}  value={currentProperties[property.name]}
+                                    onChange={(e)=>{
+                                        setCurrentProperties({...currentProperties, [property.name]:e.target.value});
+                                    }}
+                                    className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
+                            </div>
+                        }
                         return <div key={index+property.name}>
                             <label htmlFor={property.name} className='block sm:text-sm italic text-sm dark:text-white'>{property.name} *</label>
                             <select key={categoryName+property.name} defaultValue={currentProperties[property.name] || 'Select Value'} onBlur={()=>propsError.current.innerHTML = ''} name={property.name} className="p-2 block mb-3 ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600"
-                            onChange={(e)=>setCurrentProperties({...currentProperties,[property.name]:e.target.value})}>
+                            onChange={(e)=>{
+                                console.log(e.target.value);
+                                setCurrentProperties({...currentProperties, [property.name]:e.target.value})
+                            }}>
                                 <option className="dark:text-neutral-300" value='Select Value' disabled>{'Select Value'}</option>
                                 {
                                     property['value'].split(',').map((value,index)=><option key={index+value} value={value}>{value}</option>)
@@ -431,13 +459,7 @@ const EditProduct: React.FC = () => {
                     className="px-2  outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>
                 <div ref={saveError} className='text-red-500 text-center'></div>
-                <button className="bg-orange-600 md:hover:bg-orange-500 max-md:active:bg-orange-500 p-2 rounded-lg text-lg text-white disabled:bg-gray-500 disabled:hover:bg-gray-500"
-                type="submit" disabled={loadingSave}>
-                    <div className="flex justify-center gap-1">
-                        {loadingSave ? 'Updating' : 'Update'}
-                        {loadingSave ? <Loading height="h-6" width="w-6" screen={false}/> : null}
-                    </div>
-                </button>
+                <FormSubmitButton disabled={loadingSave} text={loadingSave ? 'Updating' : 'Update'} className="!ml-auto !w-fit !p-5"/>
             </form>
         </Layout>
     );

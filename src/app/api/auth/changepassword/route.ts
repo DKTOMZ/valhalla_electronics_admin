@@ -6,12 +6,13 @@ import { hash, compare } from "bcryptjs";
 import { JWTService } from "@/services/jwtService";
 import { TokenBlacklist as tokenBlacklistType } from "@/models/tokenBlacklist";
 import { AdminServer } from "@/models/Admin";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 import mongoose from "mongoose";
+import { UtilService } from "@/services/utilService";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
 const jwtService = BackendServices.get<JWTService>('JWTService');
+const utilService = BackendServices.get<UtilService>('UtilService');
 
 export async function GET() {
     return new Response(JSON.stringify({error:'GET Method not supported'}),{status:405,headers:{
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
 
         try {
 
-            await Admin.updateOne({ email:admin.email},{ password: hashedPasword, updated: CURRENT_DATE_TIME()});
+            await Admin.updateOne({ email:admin.email},{ password: hashedPasword, updated: utilService.getCurrentDateTime()});
 
             await TokenBlacklist.create({
                 tokenJti: decodedToken.jti

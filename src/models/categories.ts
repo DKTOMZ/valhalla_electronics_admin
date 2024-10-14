@@ -11,5 +11,6 @@ export interface Category {
 
 export interface CategoryProperty {
     name: string,
-    value: string
+    value: string,
+    custom?: boolean
 }

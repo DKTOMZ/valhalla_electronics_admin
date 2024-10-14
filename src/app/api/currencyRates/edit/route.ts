@@ -4,10 +4,11 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import CurrencyRates from "@/lib/currencyRatesSchema";
 import { CurrencyRateType } from "@/models/currencyRate";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
+import { UtilService } from "@/services/utilService";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const utilService = BackendServices.get<UtilService>('UtilService');
 
 export async function GET(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     else {
         try {
-            await CurrencyRates.updateOne({_id:_id},{rate: rate, updated: CURRENT_DATE_TIME()});
+            await CurrencyRates.updateOne({_id:_id},{rate: rate, updated: utilService.getCurrentDateTime()});
 
             return new Response(JSON.stringify({success:true}),{status:200,headers:{
                 'Content-Type':'application/json'

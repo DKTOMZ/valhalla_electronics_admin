@@ -44,7 +44,7 @@ const authOptions: NextAuthOptions = {
     }
   },
   pages: {
-    signIn: "/auth/login"
+    signIn: "/pages/home"
   },
   session: {
     strategy: 'jwt'

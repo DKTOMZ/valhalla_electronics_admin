@@ -40,8 +40,8 @@ const Modal: React.FC<ModalProps> = ({title,body,callback,decision=null}) => {
                 <div className="fixed inset-0 flex pointer-events-none items-center justify-center z-20">
                     <div onClick={(e)=>handleBackdropClick(e)} className="fixed pointer-events-auto inset-0 bg-neutral-700 opacity-20 dark:bg-gray-500"></div>
                         <div className={`bg-gray-100 ${isZoomed && 'animate-wiggle'} pointer-events-auto dark:bg-zinc-900 rounded-lg p-4 relative z-20`}>
-                            <h2 className="text-lg text-black dark:text-white font-bold mb-4">{title}</h2>
-                            <p className="mb-6 text-black dark:text-gray-200">{body}</p>
+                            <h2 className="text-xl text-black dark:text-white font-bold mb-4">{title}</h2>
+                            <p className="mb-6 text-lg text-black dark:text-gray-200">{body}</p>
                             { decision ?
                                 <div className="flex justify-center items-center">
                                     <button

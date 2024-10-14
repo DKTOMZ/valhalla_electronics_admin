@@ -68,13 +68,15 @@ const Settings: React.FC = () => {
     return (
         <Layout>
             <title>Valhalla - Settings</title>
-            <p className="text-black text-lg dark:text-white mb-6">
-                Settings
-            </p>
-            <div className="flex flex-col gap-y-5 items-start">
-                <button className="dark:text-white text-sm text-black md:hover:text-orange-500 max-md:active:text-orange-500" onClick={()=>setDeviceTheme()} >{<i className="fa-solid fa-circle-half-stroke fa-xl"></i>} Use Device Theme</button>
-                <button className={`dark:text-white text-sm text-black md:hover:text-orange-500 max-md:active:text-orange-500 ${appTheme === AppTheme.DARK && 'hidden'}`} onClick={()=>setDarkTheme()}>{<i className="fa-regular fa-moon fa-xl"></i>} Toggle Dark Mode</button>
-                <button className={`dark:text-white text-sm text-black md:hover:text-orange-500 max-md:active:text-orange-500 ${appTheme === AppTheme.LIGHT && 'hidden'}`} onClick={()=>setLightTheme()}>{<i className="fa-regular fa-sun fa-xl"></i>} Toggle Light Mode</button>
+            <div className="xl:w-2/3 2xl:w-1/2 w-full mx-auto">
+                <p className="text-black text-lg dark:text-white mb-6">
+                    Settings
+                </p>
+                <div className="flex flex-col gap-y-5 items-start">
+                    <button className="dark:text-white text-base text-black md:hover:text-orange-500 max-md:active:text-orange-500" onClick={()=>setDeviceTheme()} >{<i className="fa-solid fa-circle-half-stroke fa-xl"></i>} Use Device Theme</button>
+                    <button className={`dark:text-white text-base text-black md:hover:text-orange-500 max-md:active:text-orange-500 ${appTheme === AppTheme.DARK && 'hidden'}`} onClick={()=>setDarkTheme()}>{<i className="fa-regular fa-moon fa-xl"></i>} Toggle Dark Mode</button>
+                    <button className={`dark:text-white text-base text-black md:hover:text-orange-500 max-md:active:text-orange-500 ${appTheme === AppTheme.LIGHT && 'hidden'}`} onClick={()=>setLightTheme()}>{<i className="fa-regular fa-sun fa-xl"></i>} Toggle Light Mode</button>
+                </div>
             </div>
         </Layout>
     );

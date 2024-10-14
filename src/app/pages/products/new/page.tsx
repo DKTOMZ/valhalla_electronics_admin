@@ -1,4 +1,5 @@
 'use client'
+import { FormSubmitButton } from "@/components/form_submit_button";
 import Layout from "@/components/Layout";
 import Loading from "@/components/loading";
 import Modal from "@/components/modal";
@@ -7,6 +8,7 @@ import { Category, CategoryProperty } from "@/models/categories";
 import { CurrenciesType } from "@/models/currencies";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
+import { UtilService } from "@/services/utilService";
 import { ValidationService } from "@/services/validationService";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, MutableRefObject, useEffect, useRef, useState } from "react";
@@ -17,6 +19,7 @@ const NewProduct: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     const validationService = FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
     
     //State variables
     const [productName,setProductName] = useState('');
@@ -84,17 +87,17 @@ const NewProduct: React.FC = () => {
         }); 
     },[]);
 
-    useEffect(()=>{
-        const fetchData = async() => {
-            return await http.get<Category[]>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/fetch`);
-        };
-        loadingFetch && fetchData().then(response => {
-            if (response.status >= 200 && response.status<=299 && response.data) {
-                setCategories([...response.data]);
-            }
-            setLoadingFetch(false);
-        });
-    },[]);
+    // useEffect(()=>{
+    //     const fetchData = async() => {
+    //         return await http.get<Category[]>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/fetch`);
+    //     };
+    //     loadingFetch && fetchData().then(response => {
+    //         if (response.status >= 200 && response.status<=299 && response.data) {
+    //             setCategories([...response.data]);
+    //         }
+    //         setLoadingFetch(false);
+    //     });
+    // },[]);
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -121,7 +124,7 @@ const NewProduct: React.FC = () => {
 
         imageError.current.innerHTML = '';
         if ((files.length) > 3) {
-            imageError.current.innerHTML = 'Only a max of 3 images is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 3 images is allowed');
             imageBox.current.focus();
             return;
         }
@@ -133,7 +136,7 @@ const NewProduct: React.FC = () => {
             setTempImages([...tempImages,...validation]);
             setUploading(false);
         } else {
-            imageError.current.innerHTML = typeof validation === 'string' ? validation : '';
+            util.handleErrorInputField(imageError,typeof validation === 'string' ? validation : '');
         }
 
         imageError.current.innerHTML = "";
@@ -145,23 +148,23 @@ const NewProduct: React.FC = () => {
         setLoading(true);
 
         if (categoryName === 'Select Category') {
-            categoryError.current.innerHTML = 'Category is not selected';
+            util.handleErrorInputField(categoryError,'Category is not selected');
             return setLoading(false);
         }
         
         if (Object.keys(currentProperties).length != allProps.length) {
-            propsError.current.innerHTML = 'One or more of the property values is not selected';
+            util.handleErrorInputField(propsError,'One or more of the property values is not selected');
             return setLoading(false);
         }
         
-        if (tempImages.length === 0) {
-            imageError.current.innerHTML = 'Please upload at least 1 image';
+        if (tempImages.length < 3) {
+            util.handleErrorInputField(imageError,'Please upload 3 images');
             imageBox.current.focus();
             return setLoading(false);
         }
 
         if (tempImages.length > 3) {
-            imageError.current.innerHTML = 'Only a max of 3 images is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 3 images is allowed');
             imageBox.current.focus();
             return setLoading(false);
         }
@@ -187,7 +190,7 @@ const NewProduct: React.FC = () => {
         if (response.data.success ) {
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error ?? response.statusText;
+            util.handleErrorInputField(saveError,response.data.error ?? response.statusText);
             setLoading(false);
         }
     };
@@ -213,7 +216,7 @@ const NewProduct: React.FC = () => {
         <Layout>
             <title>Valhalla - New Product</title>
             { saveSuccess ? <Modal key={'Save-Product'} callback={()=>setSaveSuccess(false)} body="Your product has been saved successfully!" title='Success'/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
                 <h2 className="text-black dark:text-white text-lg">Fill the form below to add a new product</h2>
                 <div>
                     <label htmlFor='Product-Name' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Name *</label>
@@ -236,14 +239,14 @@ const NewProduct: React.FC = () => {
                         {
                             setCurrentProperties({});
                             let curr = categories.filter(category=>category.name === e.target.value)[0];
-                            setCategoryName(curr.name)
-                            setCurrentCategory(curr)
-                            setAllProps([...curr.properties])
+                            setCategoryName(curr.name);
+                            setCurrentCategory(curr);
+                            setAllProps([...curr.properties]);
                             while (curr['parentCategory']._id) {
-                                setAllProps([...allProps,...categories.filter(category=>category.name === e.target.value)[0].properties]);
+                                setAllProps([...curr.properties,...curr['parentCategory'].properties]);
                                 curr = curr.parentCategory;
                             }
-                        }} name="Current-Category" className="p-2 ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600">
+                        }} name="Current-Category" className="p-2 ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600 border-orange-400 border">
                         <option className="dark:text-neutral-300" value='Select Category' disabled>{'Select Category'}</option>
                         {categories.length > 0 ? categories.map((category)=>{
                             return <option key={category._id} value={category.name}>{category.name}</option>
@@ -254,6 +257,16 @@ const NewProduct: React.FC = () => {
                     <h3 className="text-black mt-3 dark:text-white text-base font-bold">Properties</h3>
                     <div ref={propsError} className='text-red-500'></div>
                     {allProps.length>0 ? allProps.map((property,index)=>{
+                        if(property.custom){
+                            return <div key={index+property.name}>
+                                <label htmlFor={property.name} className='block sm:text-sm italic text-sm dark:text-white'>{property.name} *</label> 
+                                <input key={categoryName+property.name} onBlur={()=>saveError.current.innerHTML = ''} type="text" required placeholder="Enter custom value" name={property.name}  value={currentProperties[property.name]}
+                                    onChange={(e)=>{
+                                        setCurrentProperties({...currentProperties, [property.name]:e.target.value});
+                                    }}
+                                    className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
+                            </div>
+                        }
                         return <div key={index+property.name}>
                             <label htmlFor={property.name} className='block sm:text-sm font-bold text-sm dark:text-white'>{property.name} *</label> 
                             <select key={categoryName+property.name} defaultValue={'Select Value'} onBlur={()=>propsError.current.innerHTML = ''} name={property.name} className="p-2 block mb-3 ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600"
@@ -335,7 +348,7 @@ const NewProduct: React.FC = () => {
                 <div>
                     <label htmlFor='ProductCurrency' className='block sm:text-base font-bold text-sm dark:text-white'>Currency *</label>
                     <select value={productCurrency} onChange={(e)=>{setProductCurrency(e.target.value)
-                        }} name="ProductCurrency" className="p-2 w-full ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600">
+                        }} name="ProductCurrency" className="p-2 w-full ring-0 outline-none rounded-lg text-black dark:text-white bg-gray-100 dark:bg-neutral-600 border-orange-400 border">
                         {currencies.length > 0 ? currencies.map((currency,index)=>{
                             return <option key={currency._id+index} value={currency.shortName}>{currency.shortName}</option>
                         }) : null}
@@ -357,13 +370,7 @@ const NewProduct: React.FC = () => {
                     className="px-2  outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                 </div>
                 <div ref={saveError} className='text-red-500 text-center'></div>
-                <button className="bg-orange-600 md:hover:bg-orange-500 max-md:active:bg-orange-500 p-2 rounded-lg text-lg text-white disabled:bg-gray-500 disabled:hover:bg-gray-500"
-                type="submit" disabled={loading}>
-                    <div className="flex justify-center gap-1">
-                        {loading ? 'Creating' : 'Create'}
-                        {loading ? <Loading height="h-6" width="w-6" screen={false}/> : null}
-                    </div>
-                </button>
+                <FormSubmitButton disabled={loading} text={loading ? 'Creating' : 'Create'} className="!ml-auto !w-fit !p-5"/>
             </form>
         </Layout>
     );

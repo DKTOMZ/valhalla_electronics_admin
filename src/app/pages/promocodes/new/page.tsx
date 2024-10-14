@@ -5,7 +5,7 @@ import Modal from "@/components/modal";
 import {FrontendServices} from "@/lib/inversify.config";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
+import { UtilService } from "@/services/utilService";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, MutableRefObject, useEffect, useRef, useState } from "react";
 
@@ -14,6 +14,7 @@ const NewPromocode: React.FC = () => {
     //Services
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 
     const currentDate = new Date();
     const year = currentDate.getFullYear();
@@ -57,7 +58,7 @@ const NewPromocode: React.FC = () => {
         if (response.data.success) {
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(saveError,response.data.error ?? response.statusText);
             setLoadingSave(false);
         }
 
@@ -79,7 +80,7 @@ const NewPromocode: React.FC = () => {
         <Layout>
             <title>Valhalla - New Promocode</title>
             { saveSuccess ? <Modal key={'Save-Promocode'} callback={()=>setSaveSuccess(false)} body="Your promocode has been saved successfully!" title={'Success!'}/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
                 <h2 className="text-black dark:text-white text-lg">Add a new promocode below</h2>
                 <div>
                     <label htmlFor='Promocode' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Code *</label>

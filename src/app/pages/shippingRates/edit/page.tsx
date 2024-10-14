@@ -10,6 +10,7 @@ import { HttpService } from "@/services/httpService";
 import { ValidationService } from "@/services/validationService";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, MutableRefObject, useEffect, useRef, useState } from "react";
+import { UtilService } from "@/services/utilService";
 
 const EditShippingRate: React.FC = () => {
     
@@ -17,6 +18,7 @@ const EditShippingRate: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
     
     //State variables
     const [name,setName] = useState('');
@@ -92,7 +94,7 @@ const EditShippingRate: React.FC = () => {
         if (response.data.success) {
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(saveError,response.data.error||response.statusText);
             setLoadingSave(false);
         }
 
@@ -126,7 +128,7 @@ const EditShippingRate: React.FC = () => {
             { saveSuccess ? <Modal key={'Save-ShippingRate'} callback={()=>{
                 setSaveSuccess(false);
             }} body="Your shippingRate has been saved successfully!" title={'Success!'}/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
                 <h2 className="text-black dark:text-white text-lg">Edit shippingRate below</h2>
                 
                 <div>
@@ -149,7 +151,10 @@ const EditShippingRate: React.FC = () => {
                 </div>
 
                 <label>
-                    <input type="checkbox" onChange={()=>setIncludeMaxDays(!includeMaxDays)} checked={includeMaxDays} />
+                    <input type="checkbox" onChange={()=>{
+                        setMaximumDeliveryDays(minimumDeliveryDays);
+                        setIncludeMaxDays(!includeMaxDays)
+                    }} checked={includeMaxDays} />
                     <p className="text-black dark:text-white inline ml-2 text-sm">Include Maximum Day to create a range</p>
                 </label>  
 

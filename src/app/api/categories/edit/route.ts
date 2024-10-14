@@ -4,13 +4,14 @@ import {BackendServices} from "@/app/api/inversify.config";
 import { CategoryProperty, Category as categoryType } from "@/models/categories";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 import mongoose from "mongoose";
 import { StorageService } from "@/services/storageService";
+import { UtilService } from "@/services/utilService";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
 const storageService = BackendServices.get<StorageService>('StorageService');
+const utilService = BackendServices.get<UtilService>('UtilService');
 
 export async function GET(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
@@ -137,14 +138,14 @@ export async function POST(req: NextRequest) {
             (files.length > 0 && category.images.length > 0) ? await storageService.deleteS3Item({Key:category.images[0].Key}) : null;
             
             if (Object.keys(parentCategory).length > 0) {
-                await Category.updateOne({name:name},{parentCategory:parentCategory, properties:properties, images: files.length > 0 ? imageLinks : category.images, updated: CURRENT_DATE_TIME() });
+                await Category.updateOne({name:name},{parentCategory:parentCategory, properties:properties, images: files.length > 0 ? imageLinks : category.images, updated: utilService.getCurrentDateTime() });
             } else {
-                await Category.updateOne({name:name},{parentCategory:{name:''}, properties:properties, images: files.length > 0 ? imageLinks : category.images, updated: CURRENT_DATE_TIME()});
+                await Category.updateOne({name:name},{parentCategory:{name:''}, properties:properties, images: files.length > 0 ? imageLinks : category.images, updated: utilService.getCurrentDateTime()});
             }
 
-            await Category.updateOne({name:category.parentCategory['name']},{$pull: {childCategories: name}, updated: CURRENT_DATE_TIME()});
+            await Category.updateOne({name:category.parentCategory['name']},{$pull: {childCategories: name}, updated: utilService.getCurrentDateTime()});
 
-            await Category.updateOne({name:parentCategory ? parentCategory.name : ''},{$push: {childCategories: name}, updated: CURRENT_DATE_TIME()});
+            await Category.updateOne({name:parentCategory ? parentCategory.name : ''},{$push: {childCategories: name}, updated: utilService.getCurrentDateTime()});
 
             await session.commitTransaction();
 

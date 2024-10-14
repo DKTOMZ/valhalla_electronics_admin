@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
             const order = await Order.find<OrderType>({_id:objectId});
     
             if(order.length === 0) {
-                return new Response(JSON.stringify({'error':'Order does not exist'}),{status:200,headers:{
+                return new Response(JSON.stringify({'error':'Order does not exist'}),{status:400,headers:{
                     'Content-Type':'application/json'
                 }});
             }

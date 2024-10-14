@@ -4,13 +4,14 @@ import Product from "@/lib/productSchema";
 import { Product as producttype } from "@/models/products";
 import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 import { StorageService } from "@/services/storageService";
 import mongoose from "mongoose";
+import { UtilService } from "@/services/utilService";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
 const storageService = BackendServices.get<StorageService>('StorageService');
+const utilService = BackendServices.get<UtilService>('UtilService');
 
 export async function GET(req: NextRequest) {
     
@@ -165,8 +166,8 @@ export async function POST(req: NextRequest) {
         'Content-Type':'application/json'
     }}) }
 
-    if(product.images.length === 0  && files.length === 0) {
-        return new Response(JSON.stringify({error:'Please upload at least one image. No image is saved'}),{status:400,headers:{
+    if(product.images.length < 3  && files.length < 3) {
+        return new Response(JSON.stringify({error:'Please upload at least 3 images'}),{status:400,headers:{
             'Content-Type':'application/json'
         }})
     }
@@ -182,10 +183,10 @@ export async function POST(req: NextRequest) {
 
                 const imageLinks = await storageService.saveFilesToS3(files);
             
-                await Product.updateOne({_id:id},{ brand, description, contents, price, images:[...product.images,...imageLinks!], category, properties:properties, discount: discount, stock: stock, currency: currency, updated: CURRENT_DATE_TIME() });
+                await Product.updateOne({_id:id},{ brand, description, contents, price, images:[...product.images,...imageLinks!], category, properties:properties, discount: discount, stock: stock, currency: currency, updated: utilService.getCurrentDateTime() });
     
             } else {
-                await Product.updateOne({_id:id},{ brand, description, contents, price, category, properties:properties, discount: discount, stock: stock, currency: currency, updated: CURRENT_DATE_TIME() });
+                await Product.updateOne({_id:id},{ brand, description, contents, price, category, properties:properties, discount: discount, stock: stock, currency: currency, updated: utilService.getCurrentDateTime() });
             }
 
             await session.commitTransaction();

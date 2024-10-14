@@ -1,10 +1,12 @@
 'use client'
+import { FormSubmitButton } from "@/components/form_submit_button";
 import Layout from "@/components/Layout";
 import Loading from "@/components/loading";
 import Modal from "@/components/modal";
 import {FrontendServices} from "@/lib/inversify.config";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
+import { UtilService } from "@/services/utilService";
 import { ValidationService } from "@/services/validationService";
 import { useRouter } from "next/navigation";
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -15,6 +17,7 @@ const NewCurrency: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 //State variables
     const [currencyName,setCurrencyName] = useState('');
     const [currencyShortName,setCurrencyShortName] = useState('');
@@ -47,7 +50,7 @@ const NewCurrency: React.FC = () => {
         if (response.data.success) {
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(saveError,response.data.error||response.statusText);
             setLoadingSave(false);
         }
 
@@ -57,7 +60,7 @@ const NewCurrency: React.FC = () => {
         <Layout>
             <title>Valhalla - New Currency</title>
             { saveSuccess ? <Modal key={'Save-Currency'} callback={()=>setSaveSuccess(false)} body="Your currency has been saved successfully!" title={'Success!'}/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 mx-auto xl:w-2/3 2xl:w-1/2 w-full">
                 <h2 className="text-black dark:text-white text-lg">Add a new currency below</h2>
                 <div>
                     <label htmlFor='Currency-Name' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Name *</label>
@@ -81,13 +84,7 @@ const NewCurrency: React.FC = () => {
                 </div>
 
                 <div ref={saveError} className='text-red-500 text-center'></div>
-                <button className="bg-orange-600 md:hover:bg-orange-500 max-md:active:bg-orange-500 p-2 rounded-lg text-lg text-white disabled:bg-gray-500 disabled:hover:bg-gray-500"
-                type="submit" disabled={loadingSave}>
-                    <div className="flex justify-center gap-1">
-                        {loadingSave ? 'Creating' : 'Create'}
-                        {loadingSave ? <Loading height="h-6" width="w-6" screen={false}/> : null}
-                    </div>
-                </button>
+                <FormSubmitButton disabled={loadingSave} text={loadingSave ? 'Creating' : 'Create'} className="!ml-auto !w-fit !p-5"/>
             </form>
         </Layout>
     );

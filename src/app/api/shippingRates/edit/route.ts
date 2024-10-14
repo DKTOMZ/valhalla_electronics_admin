@@ -4,10 +4,11 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import ShippingRates from "@/lib/shippingRatesSchema";
 import { ShippingRate as ShippingRateType } from "@/models/shippingRate";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
+import { UtilService } from "@/services/utilService";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const utilService = BackendServices.get<UtilService>('UtilService');
 
 export async function GET(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
@@ -84,9 +85,9 @@ export async function POST(req: NextRequest) {
         try {
 
             if(maximumDeliveryDays > 0){
-                await ShippingRates.updateOne({_id:_id},{minimumDeliveryDays: minimumDeliveryDays, maximumDeliveryDays: maximumDeliveryDays, rate: rate, updated: CURRENT_DATE_TIME()});
+                await ShippingRates.updateOne({_id:_id},{minimumDeliveryDays: minimumDeliveryDays, maximumDeliveryDays: maximumDeliveryDays, rate: rate, updated: utilService.getCurrentDateTime()});
             } else {
-                await ShippingRates.updateOne({_id:_id},{minimumDeliveryDays: minimumDeliveryDays, maximumDeliveryDays: null,  rate: rate, updated: CURRENT_DATE_TIME()});
+                await ShippingRates.updateOne({_id:_id},{minimumDeliveryDays: minimumDeliveryDays, maximumDeliveryDays: null,  rate: rate, updated: utilService.getCurrentDateTime()});
             }
 
             return new Response(JSON.stringify({success:true}),{status:200,headers:{

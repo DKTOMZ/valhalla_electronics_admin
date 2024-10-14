@@ -1,6 +1,8 @@
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
+import { UtilService } from "@/services/utilService";
 import mongoose from "mongoose";
+import { FrontendServices } from "./inversify.config";
 
+const util = FrontendServices.get<UtilService>('UtilService');
 /**
  * Token Blacklist schema for mongodb. Used to store used tokens that have not yet expired as revoked/blacklisted.
  */
@@ -12,12 +14,12 @@ const tokenBlacklistSchema = new mongoose.Schema({
     created: {
         type: Date,
         required: false,
-        default: CURRENT_DATE_TIME()
+        default: util.getCurrentDateTime()
     },
     updated: {
         type: Date,
         required: false,
-        default: CURRENT_DATE_TIME()
+        default: util.getCurrentDateTime()
     }
 },{ versionKey: false });
 

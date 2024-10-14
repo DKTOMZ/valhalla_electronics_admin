@@ -1,4 +1,5 @@
 'use client'
+import { FormSubmitButton } from "@/components/form_submit_button";
 import Layout from "@/components/Layout";
 import Loading from "@/components/loading";
 import Modal from "@/components/modal";
@@ -6,6 +7,7 @@ import {FrontendServices} from "@/lib/inversify.config";
 import { Category, CategoryProperty } from "@/models/categories";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
+import { UtilService } from "@/services/utilService";
 import { ValidationService } from "@/services/validationService";
 import { useRouter } from "next/navigation";
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -16,6 +18,7 @@ const NewCategory: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     const validationService = FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 
     //State variables
     const [categoryName,setCategoryName] = useState('');
@@ -80,7 +83,7 @@ const NewCategory: React.FC = () => {
         if(!files){ return; }
 
         if ((tempImages.length) >= 1) {
-            imageError.current.innerHTML = 'Only a max of 1 image is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 1 image is allowed');
             imageBox.current.focus();
             return;
         }
@@ -92,7 +95,7 @@ const NewCategory: React.FC = () => {
             setTempImages([...tempImages,...validation]);
             setUploading(false);
         } else {
-            imageError.current.innerHTML = typeof validation === 'string' ? validation : '';
+            util.handleErrorInputField(imageError,typeof validation === 'string' ? validation : '');
         }
 
         imageError.current.innerHTML = "";
@@ -104,13 +107,13 @@ const NewCategory: React.FC = () => {
         setLoadingSave(true);
         e.preventDefault();
         if (tempImages.length === 0) {
-            imageError.current.innerHTML = 'Please upload at least 1 image';
+            util.handleErrorInputField(imageError,'Please upload at least 1 image');
             imageBox.current.focus();
             return;
         }
 
         if (tempImages.length > 1) {
-            imageError.current.innerHTML = 'Only a max of 1 image is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 1 image is allowed');
             imageBox.current.focus();
             return;
         }
@@ -119,6 +122,11 @@ const NewCategory: React.FC = () => {
         tempImages.forEach((file,index)=>postData.append('image'+index,file));
         postData.append('name',categoryName);
         postData.append('parentCategory',parentCategory === 'No Parent Category' ? JSON.stringify({}) : JSON.stringify(categories.filter(category=>category.name === parentCategory)[0]));
+        properties.forEach((p)=>{
+            if(!p.value){
+                p.custom = true;
+            }
+        })
         postData.append('properties', JSON.stringify(properties));
 
         const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/save/`, 
@@ -128,7 +136,7 @@ const NewCategory: React.FC = () => {
         if (response.data.success) {
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(saveError,response.data.error || response.statusText);
             setLoadingSave(false);
         }
 
@@ -136,7 +144,7 @@ const NewCategory: React.FC = () => {
 
     const handlePropertyAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        setProperties([...properties,{name:'',value:''}]);
+        setProperties([...properties,{name:'',value:'',custom:false}]);
     };
 
     const handlePropertyRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -156,7 +164,7 @@ const NewCategory: React.FC = () => {
         <Layout>
             <title>Valhalla - New Category</title>
             { saveSuccess ? <Modal key={'Save-Category'} callback={()=>setSaveSuccess(false)} body="Your category has been saved successfully!" title={'Success!'}/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
                 <h2 className="text-black dark:text-white text-lg">Add a new category below</h2>
                 <div>
                     <label htmlFor='Category-Name' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Name *</label>
@@ -224,7 +232,7 @@ const NewCategory: React.FC = () => {
                             onChange={(e)=>setProperties([...properties.slice(0,index),{name:e.target.value,value:properties[index].value}, ...properties.slice(index+1)])}
                             className="px-2 outline-0 mb-2 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
 
-                            <input onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Property-Value" placeholder="Values (comma separated)"
+                            <input onBlur={()=>saveError.current.innerHTML = ''} type="text" name="Property-Value" placeholder="Values (comma separated)"
                             onChange={(e)=>setProperties([...properties.slice(0,index),{name:properties[index].name,value:e.target.value}, ...properties.slice(index+1)])}
                             className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                         </div>
@@ -243,13 +251,7 @@ const NewCategory: React.FC = () => {
                 </div>
 
                 <div ref={saveError} className='text-red-500 text-center'></div>
-                <button className="bg-orange-600 md:hover:bg-orange-500 max-md:active:bg-orange-500 p-2 rounded-lg text-lg text-white disabled:bg-gray-500 disabled:hover:bg-gray-500"
-                type="submit" disabled={loadingSave}>
-                    <div className="flex justify-center gap-1">
-                        {loadingSave ? 'Creating' : 'Create'}
-                        {loadingSave ? <Loading height="h-6" width="w-6" screen={false}/> : null}
-                    </div>
-                </button>
+                <FormSubmitButton disabled={loadingSave} text={loadingSave ? 'Creating' : 'Create'} className="!ml-auto !w-fit !p-5"/>
             </form>
         </Layout>
     );

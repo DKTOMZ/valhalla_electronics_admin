@@ -13,12 +13,14 @@ import { GenericResponse } from "@/models/genericResponse";
 import { ValidationService } from "@/services/validationService";
 import { useRouter } from "next/navigation";
 import LayoutAlt from "@/components/LayoutAlt";
+import { UtilService } from "@/services/utilService";
 
 const ChangePassword: React.FC = () => {
     
   //Services
   const router = useRouter();
   const http = FrontendServices.get<HttpService>('HttpService');
+  const util = FrontendServices.get<UtilService>('UtilService');
   const validationService = FrontendServices.get<ValidationService>('ValidationService');
 
   //token
@@ -87,7 +89,7 @@ const ChangePassword: React.FC = () => {
     if (response.data.success) {
       setchangePasswordSuccess(response.data.success);
     } else {
-      resetError.current.innerHTML = response.data.error || response.statusText;
+      util.handleErrorInputField(resetError,response.data.error || response.statusText);
     }
 
     setLoadingSubmit(false);

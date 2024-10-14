@@ -8,6 +8,7 @@ import { CurrenciesType } from "@/models/currencies";
 import { CurrencyRateType } from "@/models/currencyRate";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
+import { UtilService } from "@/services/utilService";
 import { ValidationService } from "@/services/validationService";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -18,6 +19,7 @@ const EditCurrencyRate: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 //State variables
     const [currencyFrom,setCurrencyFrom] = useState('');
     const [currencyTo,setCurrencyTo] = useState('');
@@ -94,7 +96,7 @@ const EditCurrencyRate: React.FC = () => {
         if (response.data.success) {
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(saveError,response.data.error||response.statusText);
             setLoadingSave(false);
         }
 
@@ -123,7 +125,7 @@ const EditCurrencyRate: React.FC = () => {
             { saveSuccess ? <Modal key={'Save-CurrencyRate'} callback={()=>{
                 setSaveSuccess(false);
             }} body="Your currencyRate has been saved successfully!" title={'Success!'}/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
                 <h2 className="text-black dark:text-white text-lg">Edit currencyRate below</h2>
                 <div>
                     <label htmlFor='CurrencyRate-From' className='block sm:text-base font-bold text-sm dark:text-white'>From currency *</label>

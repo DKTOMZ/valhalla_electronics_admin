@@ -4,10 +4,11 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import Promocode from "@/lib/promoCodesSchema";
 import { PromocodeType } from "@/models/promocode";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
+import { UtilService } from "@/services/utilService";
 
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const utilService = BackendServices.get<UtilService>('UtilService');
 
 export async function GET(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     else {
         try {
-            await Promocode.updateOne({_id:_id},{validUntil:validUntil, discountPercent: discountPercent, updated: CURRENT_DATE_TIME()});
+            await Promocode.updateOne({_id:_id},{validUntil:validUntil, discountPercent: discountPercent, updated: utilService.getCurrentDateTime()});
 
             return new Response(JSON.stringify({success:true}),{status:200,headers:{
                 'Content-Type':'application/json'

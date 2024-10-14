@@ -1,5 +1,8 @@
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
 import mongoose from "mongoose";
+import { FrontendServices } from "./inversify.config";
+import { UtilService } from "@/services/utilService";
+
+const util = FrontendServices.get<UtilService>('UtilService');
 
 /**
  * Category schema for mongodb. Used to create a category before db operations.
@@ -31,12 +34,12 @@ const categorySchema = new mongoose.Schema({
     created: {
         type: Date,
         required: false,
-        default: CURRENT_DATE_TIME()
+        default: util.getCurrentDateTime()
     },
     updated: {
         type: Date,
         required: false,
-        default: CURRENT_DATE_TIME()
+        default: util.getCurrentDateTime()
     }
 },{ versionKey: false });
 

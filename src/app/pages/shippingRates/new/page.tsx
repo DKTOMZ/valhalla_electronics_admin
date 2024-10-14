@@ -5,6 +5,7 @@ import Modal from "@/components/modal";
 import {FrontendServices} from "@/lib/inversify.config";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
+import { UtilService } from "@/services/utilService";
 import { ValidationService } from "@/services/validationService";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, MutableRefObject, useEffect, useRef, useState } from "react";
@@ -15,6 +16,7 @@ const NewShippingRate: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
     
     //State variables
     const [name,setName] = useState('');
@@ -60,7 +62,7 @@ const NewShippingRate: React.FC = () => {
         if (response.data.success) {
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(saveError,response.data.error||response.statusText);
             setLoadingSave(false);
         }
 
@@ -82,7 +84,7 @@ const NewShippingRate: React.FC = () => {
         <Layout>
             <title>Valhalla - New ShippingRate</title>
             { saveSuccess ? <Modal key={'Save-ShippingRate'} callback={()=>setSaveSuccess(false)} body="Your shippingRate has been saved successfully!" title={'Success!'}/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
                 <h2 className="text-black dark:text-white text-lg">Add a new shippingRate below</h2>
 
                 <div>

@@ -1,6 +1,7 @@
-import { emailRegex } from "@/utils/regex";
 import { injectable } from "inversify";
 import React from "react";
+import { UtilService } from "./utilService";
+import { FrontendServices } from "@/lib/inversify.config";
 
 // noinspection JSUnusedGlobalSymbols
 /**
@@ -8,6 +9,11 @@ import React from "react";
  */
 @injectable()
 export class ValidationService {
+
+    private util: UtilService;
+    constructor(){
+        this.util = FrontendServices.get<UtilService>('UtilService');
+    }
 
     async validateImage(file: File){
         if(!file['type'].includes('image')) {
@@ -37,7 +43,7 @@ export class ValidationService {
             emailErrorElement.current.innerHTML = '';
             return false;
         }
-        if (!emailRegex.test(email)){
+        if (!this.util.getEmailRegex().test(email)){
             emailErrorElement.current.innerHTML = 'Invalid email format';
             return false;
         }

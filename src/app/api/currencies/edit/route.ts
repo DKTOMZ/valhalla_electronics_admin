@@ -4,10 +4,10 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import Currency from "@/lib/currenciesSchema";
 import { CurrenciesType } from "@/models/currencies";
-import { CURRENT_DATE_TIME } from "@/utils/currentDateTime";
-
+import { UtilService } from "@/services/utilService";
 //Services
 const dbConnService = BackendServices.get<DbConnService>('DbConnService');
+const utilService = BackendServices.get<UtilService>('UtilService');
 
 export async function GET(req: NextRequest) {
     if(!process.env.NEXT_PUBLIC_COOKIE_NAME){
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     else {
         try {
-            await Currency.updateOne({_id:_id},{shortName:shortName, symbol:symbol, updated: CURRENT_DATE_TIME()});
+            await Currency.updateOne({_id:_id},{shortName:shortName, symbol:symbol, updated: utilService.getCurrentDateTime()});
 
             return new Response(JSON.stringify({success:true}),{status:200,headers:{
                 'Content-Type':'application/json'

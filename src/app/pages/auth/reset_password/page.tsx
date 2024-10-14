@@ -7,6 +7,7 @@ import {FrontendServices} from "@/lib/inversify.config";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpServiceResponse } from "@/models/httpServiceResponse";
 import { HttpService } from "@/services/httpService";
+import { UtilService } from "@/services/utilService";
 import { ValidationService } from "@/services/validationService";
 import Link from 'next/link';
 import { useRouter } from "next/navigation";
@@ -21,6 +22,7 @@ const ResetPassword = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     const validationService = FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 
     //State variables
     const [loadingSubmit,setLoadingSubmit] = useState(false);
@@ -61,7 +63,7 @@ const ResetPassword = () => {
         if (response.data.success) {
             setResetPasswordSuccess(response.data.success);
         } else {
-            resetError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(resetError,response.data.error || response.statusText);
         }
 
         setLoadingSubmit(false);

@@ -10,6 +10,7 @@ import { ValidationService } from '@/services/validationService';
 import LayoutAlt from '@/components/LayoutAlt';
 import Image from "next/image";
 import Loading from '@/components/loading';
+import { UtilService } from '@/services/utilService';
 
 /**
  * Login component for user sign in.
@@ -18,9 +19,10 @@ const Login: React.FC = () => {
 
     //Services
     const validationService = FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 
     //Incoming params
-    const oAuthError = useSearchParams().get('error');
+    const [oAuthError,setOAuthError] = useState(useSearchParams().get("error"));
 
     //State variables
     const [loginEmail,setLoginEmail] = useState('');
@@ -35,31 +37,23 @@ const Login: React.FC = () => {
     const passwordError = useRef<HTMLElement>(null) as MutableRefObject<HTMLDivElement>;
     const signinError = useRef<HTMLElement>(null) as MutableRefObject<HTMLDivElement>;
 
-    useEffect(()=>{
-        if (oAuthError === 'OAuthAccountNotLinked') {
-            signinError.current.innerHTML = 'Your email is already linked with either Github or Google';
-        }
-    },[oAuthError]);
-
     useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-        const handleChange = () => {
-        window.location.reload();
-        };
-
-        mediaQuery.addEventListener('change',handleChange);
-
-        return () => {
-        mediaQuery.removeEventListener('change',handleChange);
-        };
-    }, []);
-
+        // Check if OAuth error exists and ref is available
+        if (oAuthError === process.env.NEXT_PUBLIC_GOOGLE_OAUTH_NOT_LINKED_ERROR) {
+            // console.log(oAuthError);
+            util.handleErrorInputField(
+                signinError,
+                process.env.NEXT_PUBLIC_GOOGLE_OAUTH_NOT_LINKED_MSG ?? ''
+            );
+        }
+    });
+    
     /**
     * Handle submission of login form.
     */
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setOAuthError('');
         signinError.current.innerHTML = '';
         if (!validationService.validateEmail(loginEmail,emailError) || !validationService.validatePassword(loginPassword,passwordError)) { 
             return;
@@ -73,7 +67,7 @@ const Login: React.FC = () => {
         if (response && response.ok) {
             setLoadingSubmit(false);
             if (response.error) {
-                signinError.current.innerHTML = response.error;
+                util.handleErrorInputField(signinError,response.error);
             } else {
                 //router.replace('/pages/home');
             }
@@ -100,13 +94,11 @@ const Login: React.FC = () => {
                 <h2 className='sm:text-2xl text-lg dark:text-white font-bold block my-10'>Sign in to your admin account</h2>
                 <div className='flex sm:flex-row flex-col w-3/4 sm:w-full sm:max-w-sm justify-between mb-2'>
                     <button title='google sign-in' onClick={()=>signIn('google', {
-                        callbackUrl: '/'
                     })} className='mb-2 sm:mb-0 dark:bg-neutral-700 md:dark:hover:bg-neutral-600 max-md:dark:active:bg-neutral-600 dark:text-white md:hover:bg-indigo-100 max-md:active:bg-indigo-100 h-full sm:max-h-10 flex flex-row sm:justify-between justify-center items-center rounded-md border-spacing-2 border p-1 border-indigo-500'>
                         <Image className='mr-1' src={'/google.png'} alt='Google' height={30} width={30}/>
                         <p>Google</p>
                     </button>
                     <button title='github sign-in' onClick={()=>signIn('github',{
-                        callbackUrl: '/'
                     })} className=' dark:bg-neutral-700 md:dark:hover:bg-neutral-600 max-md:dark:active:bg-neutral-600 dark:text-white md:hover:bg-indigo-100 max-md:active:bg-indigo-100 h-full sm:max-h-10 flex flex-row sm:justify-between justify-center items-center rounded-md border-spacing-2 border p-1 border-indigo-500'>
                         <i className="fa-brands fa-github fa-xl mr-1"></i>
                         <p>Github</p>
@@ -124,7 +116,7 @@ const Login: React.FC = () => {
                     <div className='flex flex-col'>
                         <div className='flex justify-between'>
                             <label htmlFor='login-password' className='sm:text-base text-sm dark:text-white'>Password</label>
-                            <Link replace href={'/pages/auth/reset_password'} className='font-semibold sm:text-base text-sm text-orange-500 md:hover:text-orange-400 max-md:active:text-orange-400'>Forgot Password?</Link>
+                            <Link href={'/pages/auth/reset_password'} className='font-semibold sm:text-base text-sm text-orange-500 md:hover:text-orange-400 max-md:active:text-orange-400'>Forgot Password?</Link>
                         </div>
                         <div className='relative'>
                             <input placeholder='******' onBlur={()=>{
@@ -138,7 +130,7 @@ const Login: React.FC = () => {
                         </div>
                         <div ref={passwordError} className='text-red-500'></div>
                     </div>
-                    <div ref={signinError} className='text-red-500 text-center'></div>
+                    <div id='signInError' ref={signinError} className='text-red-500 text-center'></div>
                     <FormSubmitButton text='Signin' disabled={loadingSubmit}/>
                 </form>
                 <div className='mt-10'>

@@ -1,12 +1,14 @@
 'use client'
 import Layout from "@/components/Layout";
 import ErrorPage from "@/components/error";
+import { FormSubmitButton } from "@/components/form_submit_button";
 import Loading from "@/components/loading";
 import Modal from "@/components/modal";
 import {FrontendServices} from "@/lib/inversify.config";
 import { Category, CategoryProperty } from "@/models/categories";
 import { GenericResponse } from "@/models/genericResponse";
 import { HttpService } from "@/services/httpService";
+import { UtilService } from "@/services/utilService";
 import { ValidationService } from "@/services/validationService";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -17,6 +19,7 @@ const EditCategory: React.FC = () => {
     const router = useRouter();
     const http = FrontendServices.get<HttpService>('HttpService');
     const validationService = FrontendServices.get<ValidationService>('ValidationService');
+    const util = FrontendServices.get<UtilService>('UtilService');
 
     //State variables
     const [categoryName,setCategoryName] = useState('');
@@ -105,7 +108,7 @@ const EditCategory: React.FC = () => {
         if(!files){ return; }
 
         if (files.length > 1 || tempImages.length >= 1) {
-            imageError.current.innerHTML = 'Only a max of 1 image is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 1 image is allowed');
             imageBox.current.focus();
             return;
         }
@@ -117,7 +120,7 @@ const EditCategory: React.FC = () => {
             setTempImages([...tempImages,...validation]);
             setUploading(false);
         } else {
-            imageError.current.innerHTML = typeof validation === 'string' ? validation : '';
+            util.handleErrorInputField(imageError,typeof validation === 'string' ? validation : '');
         }
         imageError.current.innerHTML = "";
     };
@@ -131,13 +134,13 @@ const EditCategory: React.FC = () => {
         }
         saveError.current.innerHTML = '';
         if (tempImages.length+Images.length === 0) {
-            imageError.current.innerHTML = 'Please upload at least 1 image';
+            util.handleErrorInputField(imageError,'Please upload at least 1 image');
             imageBox.current.focus();
             return;
         }
 
         if (tempImages.length > 1) {
-            imageError.current.innerHTML = 'Only a max of 1 image is allowed';
+            util.handleErrorInputField(imageError,'Only a max of 1 image is allowed');
             imageBox.current.focus();
             return;
         }
@@ -148,6 +151,11 @@ const EditCategory: React.FC = () => {
         postData.append('name',categoryName);
         //console.log(parentCategory);
         postData.append('parentCategory',parentCategory === 'No Parent Category' ? JSON.stringify({}) : JSON.stringify(categories.filter(category=>category.name === parentCategory)[0]));
+        properties.forEach((p)=>{
+            if(!p.value){
+                p.custom = true;
+            }
+        })
         postData.append('properties', JSON.stringify(properties));
 
         const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/categories/edit/`,
@@ -158,7 +166,7 @@ const EditCategory: React.FC = () => {
             setTempImages([]);
             setSaveSuccess(true);
         } else {
-            saveError.current.innerHTML = response.data.error || response.statusText;
+            util.handleErrorInputField(saveError,response.data.error || response.statusText);
             setLoadingSave(false);
         }
     };
@@ -170,7 +178,7 @@ const EditCategory: React.FC = () => {
         }
         saveError.current.innerHTML = '';
         e.preventDefault();
-        setProperties([...properties,{name:'',value:''}]);
+        setProperties([...properties,{name:'',value:'',custom:false}]);
     };
 
     const handlePropertyRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -192,7 +200,7 @@ const EditCategory: React.FC = () => {
         }
         saveError.current.innerHTML = '';
         e.preventDefault();
-        if (Images.length === 1) { return savedImageError.current.innerHTML = 'There should be at least 1 image saved'}
+        if (Images.length === 1) { return util.handleErrorInputField(savedImageError,'There should be at least 1 image saved');}
                                         
         setLoadingDelete(true);
         const response = await http.post<GenericResponse>(`${process.env.NEXT_PUBLIC_VALHALLA_URL}/api/image/delete/`, {
@@ -202,7 +210,7 @@ const EditCategory: React.FC = () => {
 
         if (response.data.error) { 
             setLoadingDelete(false);
-            return savedImageError.current.innerHTML = response.data.error || response.statusText;
+            return util.handleErrorInputField(savedImageError,response.data.error || response.statusText);
         }
 
         setLoading(true);
@@ -235,7 +243,7 @@ const EditCategory: React.FC = () => {
             { saveSuccess ? <Modal key={'Save-Category'} callback={()=>{
                 setSaveSuccess(false);
             }} body="Your category has been updated successfully!" title={'Success!'}/> : null}
-            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4">
+            <form onSubmit={(e)=>handleSubmit(e)} className="flex flex-col gap-4 xl:w-2/3 2xl:w-1/2 w-full mx-auto">
                 <h2 className="text-black dark:text-white text-lg">Edit category below</h2>
                 <div>
                     <label htmlFor='Category-Name' className='sm:text-base font-bold mb-0 text-sm dark:text-white'>Name *</label>
@@ -324,7 +332,7 @@ const EditCategory: React.FC = () => {
                             onChange={(e)=>setProperties([...properties.slice(0,index),{name:e.target.value,value:properties[index].value}, ...properties.slice(index+1)])}
                             className="px-2 outline-0 mb-2 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
 
-                            <input value={property.value} onBlur={()=>saveError.current.innerHTML = ''} type="text" required name="Property-Value" placeholder="Values (comma separated)"
+                            <input value={property.value} onBlur={()=>saveError.current.innerHTML = ''} type="text" name="Property-Value" placeholder="Values (comma separated)"
                             onChange={(e)=>setProperties([...properties.slice(0,index),{name:properties[index].name,value:e.target.value}, ...properties.slice(index+1)])}
                             className="px-2 outline-0 w-full rounded-md h-10 ring-1 dark:bg-neutral-600 dark:text-white ring-orange-400 outline-orange-400 focus:ring-2"/>
                         </div>
@@ -343,13 +351,7 @@ const EditCategory: React.FC = () => {
                 </div>
 
                 <div ref={saveError} className='text-red-500 text-center'></div>
-                <button className="bg-orange-600 md:hover:bg-orange-500 max-md:active:bg-orange-500 p-2 rounded-lg text-lg text-white disabled:bg-gray-500 disabled:hover:bg-gray-500"
-                type="submit" disabled={loadingSave}>
-                    <div className="flex justify-center gap-1">
-                        {loadingSave ? 'Updating' : 'Update'}
-                        {loadingSave ? <Loading height="h-6" width="w-6" screen={false}/> : null}
-                    </div>
-                </button>
+                <FormSubmitButton disabled={loadingSave} text={loadingSave ? 'Updating' : 'Update'} className="!ml-auto !w-fit !p-5"/>
             </form>
         </Layout>
     );
